@@ -2,6 +2,8 @@
 # Assemble les cotes Betclic, les stats domicile/extérieur, la forme, le classement,
 # l'historique des cotes et les résultats des matchs déjà joués.
 import sys,json,re,datetime,os
+sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+import ratings
 from zoneinfo import ZoneInfo
 PARIS=ZoneInfo('Europe/Paris')
 odds=json.load(open(sys.argv[1])); stats=json.load(open(sys.argv[2])); results=json.load(open(sys.argv[3]))
@@ -56,6 +58,17 @@ def score_for(rec):
                 return [r['hg'],r['ag']]
     return None
 
+# notes attaque/défense (Dixon-Coles), testées sur la saison : K=8, demi-vie 365 j
+DC={lg:ratings.fit(rs,now.date()+datetime.timedelta(days=1),365,8.0) for lg,rs in results.items()}
+DC={k:v for k,v in DC.items() if v}
+def tstats(lg,team,side):
+    # stats de l'équipe à domicile (side='h') ou à l'extérieur ('a') : matchs, buts pour/contre, +2,5, 2 équipes marquent, sans encaisser, sans marquer
+    rs=[(r['hg'],r['ag']) if side=='h' else (r['ag'],r['hg']) for r in results.get(lg,[]) if r[side]==team]
+    n=len(rs)
+    if not n: return None
+    f=lambda c:round(sum(1 for x in rs if c(*x))/n,2)
+    return [n,round(sum(x[0] for x in rs)/n,2),round(sum(x[1] for x in rs)/n,2),f(lambda a,b:a+b>2),f(lambda a,b:a>0 and b>0),f(lambda a,b:b==0),f(lambda a,b:a==0)]
+
 old={m['id']:m for m in prev.get('matches',[])+prev.get('past',[])}
 out=[]
 for m in odds:
@@ -73,6 +86,15 @@ for m in odds:
         rh,ra=rates(sh,*avg[lh]),rates(sa,*avg[la])
         rec.update(hGF=round(rh['hGF'],3),hGA=round(rh['hGA'],3),aGF=round(ra['aGF'],3),aGA=round(ra['aGA'],3),lgH=round(lgH,3),lgA=round(lgA,3),gp=[rh['gp'],ra['gp']],hk=kh,ak=ka)
         if lh!=la or m['comp'] not in LG: rec['cross']=1
+        # buts attendus : moyenne du modèle domicile/extérieur et du modèle Dixon-Coles (meilleur des deux au test)
+        l1=(rec['hGF']*rec['aGA']/lgH,rec['aGF']*rec['hGA']/lgA)
+        if not rec.get('cross') and lh in DC:
+            l2=ratings.lambdas(DC[lh],kh,ka); _,_,att,dfn,_=DC[lh]
+            rec['xh'],rec['xa']=round((l1[0]+l2[0])/2,3),round((l1[1]+l2[1])/2,3)
+            rec['rt']=[round(att.get(kh,1)*100),round(100/dfn.get(kh,1)),round(att.get(ka,1)*100),round(100/dfn.get(ka,1))]
+        else: rec['xh'],rec['xa']=round(l1[0],3),round(l1[1],3)
+        th,ta=tstats(lh,kh,'h'),tstats(la,ka,'a')
+        if th and ta: rec['ts']=[th,ta]
     for side,k in (('h',kh),('a',ka)):
         if k in form: rec[side+'f']=form[k]
         if k in rank and not rec.get('cross'): rec[side+'r']=rank[k]; rec['n']=size[k]
