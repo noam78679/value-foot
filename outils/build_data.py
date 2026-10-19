@@ -3,7 +3,7 @@
 # avec les cotes Betclic relevées sur compare-bet.fr, puis calcule le modèle, la forme, les classements et l'archive.
 import sys,json,re,datetime,os,glob,unicodedata,math
 sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
-import ratings,fd
+import ratings,fd,espn
 from zoneinfo import ZoneInfo
 PARIS=ZoneInfo('Europe/Paris'); now=datetime.datetime.now(PARIS)
 FD,CB,SC,PREV,OUT=sys.argv[1:6]
@@ -56,6 +56,12 @@ SHOW={'Paris SG':'PSG','Man City':'Manchester City','Man United':'Manchester Uni
  'Inter':'Inter Milan','Milan':'Milan AC','Roma':'AS Rome','Napoli':'Naples','Como':'Côme','Parma':'Parme','Bologna':'Bologne','Lazio':'Lazio Rome','Juventus':'Juventus Turin',
  'Ein Frankfurt':'Eintracht Francfort','FC Koln':'Cologne',"M'gladbach":"Borussia M'gladbach",'Dortmund':'Borussia Dortmund','Leverkusen':'Bayer Leverkusen','Freiburg':'Fribourg','Augsburg':'Augsbourg','Hamburg':'Hambourg','Werder Bremen':'Werder Brême','Mainz':'Mayence',
  'St Etienne':'Saint-Étienne','Sp Lisbon':'Sporting CP','Sp Braga':'SC Braga','Club Brugge':'Club Bruges','AEK':'AEK Athènes','Bodo/Glimt':'Bodø/Glimt'}
+ESPN2FD={'Paris Saint-Germain':'Paris SG','Stade Rennais':'Rennes','Olympique Lyonnais':'Lyon','Stade Brestois':'Brest','Manchester United':'Man United','Manchester City':'Man City',
+ 'Nottingham Forest':"Nott'm Forest",'Wolverhampton Wanderers':'Wolves','Atlético Madrid':'Ath Madrid','Athletic Club':'Ath Bilbao','Espanyol':'Espanol','Borussia Mönchengladbach':"M'gladbach",
+ 'Eintracht Frankfurt':'Ein Frankfurt','Internazionale':'Inter','Sporting CP':'Sp Lisbon','SC Braga':'Sp Braga','Club Brugge':'Club Brugge','Saint-Étienne':'St Etienne','AS Saint-Étienne':'St Etienne',
+ 'Mainz':'Mainz','1. FSV Mainz 05':'Mainz','FC Augsburg':'Augsburg','Hamburg SV':'Hamburg','Leeds United':'Leeds','Ipswich Town':'Ipswich','Hull City':'Hull','Coventry City':'Coventry',
+ 'Deportivo La Coruña':'La Coruna','Deportivo':'La Coruna','FC Cologne':'FC Koln','AEK Athens':'AEK','Bodo/Glimt':'Bodo/Glimt','Real Betis':'Betis','Celta Vigo':'Celta'}
+CB2FD.update(ESPN2FD)
 def norm(s): return re.sub(r'[^a-z0-9]','',unicodedata.normalize('NFD',s).encode('ascii','ignore').decode().lower())
 def resolve(name,lg=None):
     n=CB2FD.get(name,name)
@@ -66,7 +72,11 @@ def resolve(name,lg=None):
         if norm(t)==k: return t
     for t in pool:  # « Fenerbahce » dans « Fenerbahce SK », etc.
         if len(norm(t))>=4 and len(k)>=4 and (norm(t) in k or k in norm(t)): return t
-    return None
+    # un mot significatif qui commence pareil (« Stade Rennais » / « Rennes »), s'il ne désigne qu'une équipe
+    STOP={'fc','ac','as','sc','cf','afc','rc','club','de','stade','olympique','real','sporting','united','city','sv','vfb','vfl','tsg','fk','sk'}
+    words=lambda x:[w for w in re.sub(r'[^a-z ]',' ',unicodedata.normalize('NFD',x).encode('ascii','ignore').decode().lower()).split() if w not in STOP and len(w)>=4]
+    hits=[t for t in pool if any(a[:5]==b[:5] for a in words(n) for b in words(t))] if lg else []
+    return hits[0] if len(hits)==1 else None
 
 # ---------- modèle par championnat : notes attaque/défense sur 70 % xG + 30 % buts (meilleur réglage au test) ----------
 def target(r,b=0.7):
@@ -192,6 +202,26 @@ for m in betclic:
     else:
         r=build(lg or 'CL',m['comp'],w,hk,ak,home,away,odds,{},cross=not lg)
         recs[r['id']]=r
+LGN=dict(fd.NAME); LGN.update({k:v[1] for k,v in espn.EXTRA.items()}); LGN['CL']='Ligue des champions'
+added=0
+try: efix=espn.fixtures(8)
+except Exception as e: efix=[]; print('calendrier ESPN indisponible :',e)
+for x in efix:
+    w=x['when'].astimezone(PARIS)
+    if w<now or w>now+datetime.timedelta(days=8): continue
+    lg=x['lg']; inleague=lg in results
+    hk,ak=resolve(x['h'],lg if inleague else None),resolve(x['a'],lg if inleague else None)
+    def close(r): return abs((datetime.datetime.fromisoformat(r['when'])-w).total_seconds())<36*3600
+    sameH=lambda r:(hk and r.get('hk')==hk) or norm(r['home'])==norm(x['h']) or norm(r['home'])[:5]==norm(x['h'])[:5]
+    sameA=lambda r:(ak and r.get('ak')==ak) or norm(r['away'])==norm(x['a']) or norm(r['away'])[:5]==norm(x['a'])[:5]
+    dup=next((r for r in recs.values() if close(r) and (r['lg']==lg or not inleague) and (sameH(r) or sameA(r))),None)
+    if dup:
+        if not dup.get('mkt') and x['mkt']: dup['mkt']=x['mkt']
+        dup.setdefault('espn',x['espn']); continue
+    home=SHOW.get(hk,hk) if hk else x['h']; away=SHOW.get(ak,ak) if ak else x['a']
+    r=build(lg,LGN.get(lg,lg),w,hk,ak,home,away,None,x['mkt'],cross=not inleague); r['espn']=x['espn']
+    recs[r['id']]=r; added+=1
+print('calendrier ESPN :',len(efix),'matchs lus,',added,'ajoutés')
 out=sorted(recs.values(),key=lambda r:r['when'])
 if len(out)<40: sys.exit(f'Seulement {len(out)} matchs récupérés : données gardées telles quelles')
 
