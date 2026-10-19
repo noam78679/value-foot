@@ -220,6 +220,7 @@ details.add summary{padding:14px;font-weight:600;cursor:pointer}
         <div class="row"><div>Prudence<small>Confiance donnée au modèle face à Betclic</small></div><select id="s-w"><option value="0.5">Audacieux</option><option value="0.35" selected>Normal</option><option value="0.2">Prudent</option></select></div>
         <div class="row"><div>Value mini<small>Écart minimum avec la cote juste</small></div><select id="s-ev"><option value="0.02">2 %</option><option value="0.04" selected>4 %</option><option value="0.07">7 %</option><option value="0.1">10 %</option></select></div>
         <div class="row"><div>Proba mini<small>Chance de gagner minimum</small></div><select id="s-p"><option value="0.3">30 %</option><option value="0.4" selected>40 %</option><option value="0.5">50 %</option><option value="0.6">60 %</option></select></div>
+        <div class="row"><div>Cote mini des gros combinés</div><select id="s-big"><option value="3">3</option><option value="5" selected>5</option><option value="8">8</option><option value="10">10</option></select></div>
         <div class="row"><div>Matchs par combiné</div><select id="s-legs"><option>2</option><option selected>3</option><option>4</option></select></div>
       </div>
 
@@ -277,7 +278,7 @@ let ticket=store.get('vf-ticket',[]);
 let st=Object.assign({tab:'pronos',day:'today',comp:'Tout'},store.get('vf-ui',{}));
 st.day='today'; // l'app s'ouvre toujours sur les matchs du jour
 let opened=new Set(),editing=null;
-const S={bank:$('s-bank'),w:$('s-w'),ev:$('s-ev'),p:$('s-p'),legs:$('s-legs')};
+const S={bank:$('s-bank'),w:$('s-w'),ev:$('s-ev'),p:$('s-p'),legs:$('s-legs'),big:$('s-big')};
 const saved=store.get('vf-settings4',{});
 for(const k in S)if(saved[k]!=null&&(!S[k].options||[...S[k].options].some(o=>o.value==saved[k])))S[k].value=saved[k];
 
@@ -372,6 +373,37 @@ function pickCard(l,hero){
   </article>`;
 }
 
+/* ---- gros combinés : cote totale >= cote mini, en ne gardant que des paris à value positive ---- */
+let BIG=[];
+function findBig(){
+  const min=+S.big.value,bank=num(S.bank.value)||0;
+  // meilleur candidat par match (value >= 0, au moins 30 % de chance), les plus rentables d'abord
+  const cand=A.filter(a=>a.sts).map(a=>a.legs.filter(l=>l.odds&&l.ev>=0&&!l.sus&&l.p>=0.3).sort((x,y)=>y.ev-x.ev)[0]).filter(Boolean).sort((a,b)=>b.ev-a.ev).slice(0,14);
+  const res=[];
+  (function go(i,pick,o,p){
+    if(pick.length>=2&&o>=min&&o<=min*2.2){res.push({legs:pick.slice(),o,p,ev:p*o-1});}
+    if(pick.length===5||i>=cand.length)return;
+    for(let j=i;j<cand.length;j++){pick.push(cand[j]);go(j+1,pick,o*cand[j].odds,p*cand[j].p);pick.pop()}
+  })(0,[],1,1);
+  // les plus probables d'abord (tous les paris ont une value positive) ; on évite deux combinés presque identiques
+  res.sort((a,b)=>b.p-a.p||b.ev-a.ev);
+  const out=[];
+  for(const c of res){const ids=c.legs.map(l=>l.mid+l.key);if(out.some(x=>x.legs.filter(l=>ids.includes(l.mid+l.key)).length>=Math.max(1,ids.length-1)))continue;
+    out.push({...c,stake:Math.min(0.01,Math.max(0,c.ev)/(c.o-1)*0.25)*bank});if(out.length===3)break}
+  return out;
+}
+function bigCombos(){
+  BIG=findBig();const min=+S.big.value;
+  let h=`<div class="sec-h"><h2>Combinés cote ${min}+</h2><span>${BIG.length?BIG.length+' proposé'+(BIG.length>1?'s':''):''}</span></div>`;
+  if(!BIG.length)return h+`<div class="empty"><b>Pas de combiné à cote ${min}+ ${esc(DAY.name)}</b>Pas assez de paris rentables sur cette période pour l'atteindre sans prendre de mauvais paris.${st.day!=='week'?'<br><button class="cta ghost" data-day="week">Chercher sur 7 jours</button>':''}</div>`;
+  return h+`<p class="note" style="margin:-6px 0 0">Gros gain possible, mais ils perdent souvent : mise petit.</p>`+BIG.map((c,i)=>`<div class="combo">
+    <div class="meta"><span>${c.legs.length} matchs</span><span class="tag y">Cote ${fr(c.o)}</span></div>
+    ${c.legs.map(l=>`<div class="leg"><div><b>${esc(l.label)}</b><small>${esc(l.match.home)} – ${esc(l.match.away)} · ${st.day==='week'?new Date(l.match.when).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})+' ':''}${time(l.match.when)} · ${pct(l.p)}</small></div><b class="num">${fr(l.odds)}</b></div>`).join('')}
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr)"><div class="kpi"><small>Cote</small><b class="big">${fr(c.o)}</b></div><div class="kpi"><small>Chance</small><b>${pct(c.p)}</b></div><div class="kpi"><small>Value</small><b class="g">+${pct(c.ev)}</b></div><div class="kpi"><small>Mise</small><b>${fr(c.stake)} €</b></div></div>
+    <p class="note" style="margin:0">Gagne environ 1 fois sur ${Math.max(2,Math.round(1/c.p))}. Pour 2 € misés : ${fr(2*c.o)} € si gagné.</p>
+    <button class="cta" data-big="${i}">${plus} Mettre ce combiné dans le ticket</button></div>`).join('');
+}
+
 /* ---- rendu ---- */
 let A=[],FLAT=[],DAY=null;
 function compute(){
@@ -413,6 +445,7 @@ function renderPronos(){
       <div class="kpis" style="grid-template-columns:repeat(4,1fr)"><div class="kpi"><small>Cote</small><b class="big">${fr(o)}</b></div><div class="kpi"><small>Proba</small><b>${pct(p)}</b></div><div class="kpi"><small>Value</small><b class="g">+${pct(ev)}</b></div><div class="kpi"><small>Mise</small><b>${fr(stake)} €</b></div></div>
       <button class="cta" id="b-combo">${plus} Mettre le combiné dans le ticket</button></div>`;
   }
+  h+=bigCombos();
   const g=A.filter(a=>a.sts&&!a.m.cross).flatMap(a=>a.legs.filter(l=>['o25','u25','by','bn'].includes(l.key)&&!l.odds&&l.p>=0.62)).sort((a,b)=>b.p-a.p).slice(0,8);
   if(g.length)h+=`<div class="sec-h"><h2>Paris buts</h2><span>à vérifier sur Betclic</span></div>
     <p class="note" style="margin:-6px 0 0">Joue seulement si Betclic affiche une cote au moins égale à la cote mini.</p>`+
@@ -499,6 +532,7 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-mid][data-key]');if(a){toggleLeg(a.dataset.mid,a.dataset.key);return}
   const c=e.target.closest('[data-comp]');if(c){st.comp=c.dataset.comp;renderAll();return}
   const o=e.target.closest('[data-open]');if(o){const id=o.dataset.open;opened.has(id)?opened.delete(id):opened.add(id);renderMatchs();return}
+  const bg=e.target.closest('[data-big]');if(bg){const c=BIG[+bg.dataset.big];if(c){ticket=c.legs.map(l=>({mid:l.mid,key:l.key}));renderAll();toast('Combiné cote '+fr(c.o)+' ajouté au ticket')}return}
   const rm=e.target.closest('[data-rm]');if(rm){ticket=ticket.filter(x=>x.mid!==rm.dataset.rm);renderAll();return}
   const ed=e.target.closest('[data-edit]');if(ed){openForm(custom.find(m=>m.id===ed.dataset.edit));return}
   const dl=e.target.closest('[data-del]');if(dl){
