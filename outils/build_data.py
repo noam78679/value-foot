@@ -5,7 +5,7 @@ odds=json.load(open(sys.argv[1])); stats=json.load(open(sys.argv[2]))
 LG={'Ligue 1':'france','Premier League':'england','Liga':'spain','Serie A':'italy','Bundesliga':'germany'}
 NAME={'PSG':'Paris SG','Coventry':'Coventry City','Manchester United':'Manchester Utd','Newcastle':'Newcastle Utd','Nottingham Forest':'Nottm Forest','Leeds':'Leeds Utd',
  'Alavés':'Alaves','La Corogne':'Deportivo','Espanyol Barcelone':'Espanyol','FC Barcelone':'FC Barcelona','Santander':'Racing','Betis Séville':'Real Betis','FC Séville':'Sevilla FC','Valence':'Valencia','Atletico Madrid':'Atletico Madrid',
- 'Milan AC':'AC Milan','AS Rome':'AS Roma','Atalanta Bergame':'Atalanta','Bologne':'Bologna','Come':'Como','Frosinone Calcio':'Frosinone','Juventus Turin':'Juventus','Lazio Rome':'Lazio','Naples':'Napoli','Parme':'Parma',
+ 'Milan AC':'AC Milan','AS Rome':'AS Roma','Atalanta Bergame':'Atalanta','Bologne':'Bologna','Come':'Como','Côme':'Como','Frosinone Calcio':'Frosinone','Juventus Turin':'Juventus','Lazio Rome':'Lazio','Naples':'Napoli','Parme':'Parma',
  'Borussia Dortmund':'Dortmund','Eintracht Francfort':'E. Frankfurt','Augsbourg':'FC Augsburg','Cologne':'FC Koln','Mayence':'FSV Mainz','Mainz':'FSV Mainz','Fribourg':'Freiburg','Hambourg':'Hamburger SV','Bayer Leverkusen':'Leverkusen',"Borussia M'gladbach":'Monchengladbach','Werder Breme':'Werder Bremen'}
 MOIS={m:i+1 for i,m in enumerate('janvier février mars avril mai juin juillet août septembre octobre novembre décembre'.split())}
 def league_avgs(t):
@@ -32,6 +32,8 @@ for m in odds:
     # heures de compare-bet.fr = heure de Paris ; on ajoute le décalage pour un affichage juste partout
     iso=datetime.datetime(int(d[3]),MOIS[d[2]],int(d[1]),int(d[4]),int(d[5]),tzinfo=ZoneInfo('Europe/Paris')).isoformat(timespec='minutes')
     lh,sh=find(m['home']); la,sa=find(m['away'])
+    SHOW={'Come':'Côme'}
+    m['home'],m['away']=SHOW.get(m['home'],m['home']),SHOW.get(m['away'],m['away'])
     rec=dict(id=re.sub(r'\W+','-',(m['home']+'-'+m['away']+'-'+iso[:10]).lower()),comp=m['comp'],when=iso,home=m['home'],away=m['away'],
              odds=dict(h=m['odds'][0],d=m['odds'][1],a=m['odds'][2]))
     if sh and sa:
