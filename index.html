@@ -139,6 +139,23 @@ input,select{font:inherit}
 .odd.sel small,.odd.sel em,.odd.sel b{color:var(--yellow-ink)}
 .odd:disabled{opacity:.5;cursor:default}
 .mline{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.adv{border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:14px;background:var(--turf-2);border:1px solid var(--line)}
+.adv.go{background:var(--good-bg);border-color:rgba(111,227,161,.5)}
+.adv .k{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--muted)}
+.adv.go .k{color:var(--good)}
+.adv .main{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.adv .main b{font-family:var(--f-display);font-size:20px;text-transform:uppercase;line-height:1.1}
+.adv .alt{font-size:13px;color:var(--muted)}
+.adv.risk{background:var(--warn-bg);border-color:rgba(255,182,72,.45)}
+.mbm{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mbm button{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:2px 10px;align-items:center;width:100%;text-align:left;padding:11px 14px;border-top:1px solid var(--line)}
+.mbm button:first-child{border-top:0}
+.mbm .tm{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.mbm .tn{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mbm .tb{grid-column:2/4;font-size:13px;color:var(--muted)}
+.mbm .tb b{color:var(--chalk)}
+.adv.risk .k{color:var(--warn)}
+.adv .alt b{color:var(--chalk);font-weight:600}
 .mline b{color:var(--chalk);font-family:var(--f-mono)}
 .more{font-size:13px;color:var(--yellow);font-weight:600;align-self:flex-start;padding:2px 0}
 .markets{display:flex;flex-direction:column}
@@ -432,7 +449,9 @@ function renderPronos(){
   let h=`<div class="sec-h"><h2>Pronos ${esc(nm)}</h2><span>${A.length} match${A.length>1?'s':''} analysé${A.length>1?'s':''}</span></div>`;
   const next=st.day!=='week'&&st.day!==dayList()[6].key?`<br><button class="cta ghost" data-goday="next">Voir le jour suivant</button>`:'';
   if(!A.length)h+=`<div class="empty"><b>Pas de match ${esc(nm)}</b>Dans les 5 grands championnats et la Ligue des champions.${next}</div>`;
-  else if(!uniq.length)h+=`<div class="empty"><b>Aucun bon pari ${esc(nm)}</b>Les cotes Betclic sont justes sur ces matchs. Ne force pas : ne pas parier, c'est aussi gagner.${next}</div>`;
+  else if(!uniq.length){const nr=A.filter(a=>a.legs.some(l=>l.odds&&!l.sus&&l.ev>=+S.ev.value)).length;
+    h+=nr?`<div class="empty"><b>Pas de pari sûr ${esc(nm)}</b>${nr} match${nr>1?'s ont':' a'} un pari rentable mais risqué (moins de ${pct(+S.p.value)} de chance) : voir « Match par match » plus bas.${next}</div>`
+      :`<div class="empty"><b>Aucun bon pari ${esc(nm)}</b>Les cotes Betclic sont justes sur ces matchs. Ne force pas : ne pas parier, c'est aussi gagner.${next}</div>`}
   else{
     h+=pickCard(uniq[0],true);
     if(uniq.length>1)h+=`<div class="sec-h"><h2>Autres paris value</h2><span>${uniq.length-1}</span></div>`+uniq.slice(1).map(l=>pickCard(l,false)).join('');
@@ -446,12 +465,41 @@ function renderPronos(){
       <button class="cta" id="b-combo">${plus} Mettre le combiné dans le ticket</button></div>`;
   }
   h+=bigCombos();
+  if(A.length){
+    h+=`<div class="sec-h"><h2>Match par match</h2><span>touche pour le détail</span></div><div class="mbm">`+A.map(a=>{
+      const v=a.legs.filter(l=>l.ok).sort((x,y)=>y.ev-x.ev)[0],r=a.legs.filter(l=>l.odds&&!l.sus&&l.ev>=+S.ev.value).sort((x,y)=>y.ev-x.ev)[0];
+      const [tag,txt]=!a.sts?['n','Pas de stats : pas de conseil']:v?['g',`<b>${esc(v.label)}</b> · ${fr(v.odds)} · ${pct(v.p)}`]:r?['w',`<b>${esc(r.label)}</b> · ${fr(r.odds)} · ${pct(r.p)} (risqué)`]:['n','Rien à jouer'];
+      return `<button data-goto="${esc(a.m.id)}"><span class="tm">${time(a.m.when)}</span><span class="tn">${esc(a.m.home)} – ${esc(a.m.away)}</span><span class="tag ${tag}">${tag==='g'?'à jouer':tag==='w'?'risqué':'passer'}</span><span class="tb">${txt}</span></button>`}).join('')+`</div>`;
+  }
   const g=A.filter(a=>a.sts&&!a.m.cross).flatMap(a=>a.legs.filter(l=>['o25','u25','by','bn'].includes(l.key)&&!l.odds&&l.p>=0.62)).sort((a,b)=>b.p-a.p).slice(0,8);
   if(g.length)h+=`<div class="sec-h"><h2>Paris buts</h2><span>à vérifier sur Betclic</span></div>
     <p class="note" style="margin:-6px 0 0">Joue seulement si Betclic affiche une cote au moins égale à la cote mini.</p>`+
     g.map(l=>`<div class="goal"><div class="what">${esc(l.label)}</div><div class="sub">${esc(l.match.home)} – ${esc(l.match.away)} · ${time(l.match.when)} · ${pct(l.p)}</div><div class="min"><small>Cote mini</small><b>${fr(l.min)}</b></div></div>`).join('');
   $('v-pronos').innerHTML=h;
   const bc=$('b-combo');if(bc)bc.onclick=()=>{ticket=best.map(l=>({mid:l.mid,key:l.key}));renderAll();toast('Combiné ajouté au ticket')};
+}
+function advice(a){
+  const {legs,sts,m}=a,withOdds=legs.filter(l=>l.odds&&l.p!=null);
+  const fav=withOdds.filter(l=>['h','d','a'].includes(l.key)).sort((x,y)=>y.p-x.p)[0];
+  if(!sts)return `<div class="adv"><span class="k">Notre conseil</span><div>Pas de stats sur une des équipes : pas de conseil fiable.</div>${fav?`<div class="alt">Favori de Betclic : <b>${esc(fav.label)}</b> (${pct(fav.p)}, cote ${fr(fav.odds)})</div>`:''}</div>`;
+  const val=legs.filter(l=>l.ok).sort((x,y)=>y.ev-x.ev)[0];
+  const safe=legs.filter(l=>['dc1x','dcx2','h','a'].includes(l.key)&&l.p!=null).sort((x,y)=>y.p-x.p)[0];
+  const goal=legs.filter(l=>['o25','u25','by','bn'].includes(l.key)&&l.p>=0.6).sort((x,y)=>y.p-x.p)[0];
+  const odd=l=>l.odds?`cote ${fr(l.odds)}`:`joue si cote ≥ ${fr(l.min)}`;
+  const extra=[safe&&(!val||safe.key!==val.key)?`<div class="alt">Le plus sûr : <b>${esc(safe.label)}</b> · ${pct(safe.p)} · ${odd(safe)}</div>`:'',
+    goal?`<div class="alt">Buts : <b>${esc(goal.label)}</b> · ${pct(goal.p)} · ${odd(goal)}</div>`:''].join('');
+  if(val){const on=inTicket(val.mid,val.key);
+    return `<div class="adv go"><span class="k">Le meilleur pari du match</span><div class="main"><b>${esc(val.label)}</b><span class="num">${fr(val.odds)}</span></div>
+      <div class="alt">${pct(val.p)} de chance · value +${pct(val.ev,1)} · mise ${fr(val.stake)} €${m.cross?' · coupe d\'Europe, moins fiable':''}</div>${extra}
+      <button class="addsm ${on?'on':''}" style="align-self:flex-start" data-mid="${esc(val.mid)}" data-key="${val.key}">${on?'✓ Dans le ticket':'+ Ajouter au ticket'}</button></div>`}
+  const risky=withOdds.filter(l=>!l.sus&&l.ev>=+S.ev.value).sort((x,y)=>y.ev-x.ev)[0];
+  if(risky){const on=inTicket(risky.mid,risky.key);
+    return `<div class="adv risk"><span class="k">Rentable mais risqué</span><div class="main"><b>${esc(risky.label)}</b><span class="num">${fr(risky.odds)}</span></div>
+      <div class="alt">Seulement ${pct(risky.p)} de chance, mais la cote paie bien (value +${pct(risky.ev,1)}). Petite mise : ${fr(risky.stake)} €.</div>${extra}
+      <button class="addsm ${on?'on':''}" style="align-self:flex-start" data-mid="${esc(risky.mid)}" data-key="${risky.key}">${on?'✓ Dans le ticket':'+ Ajouter au ticket'}</button></div>`}
+  const least=withOdds.filter(l=>!l.sus).sort((x,y)=>y.ev-x.ev)[0];
+  return `<div class="adv"><span class="k">Notre conseil</span><div><b>Pas de pari rentable sur ce match.</b> Le mieux est de ne pas le jouer.</div>
+    ${least?`<div class="alt">Si tu tiens à le jouer, le moins mauvais : <b>${esc(least.label)}</b> · cote ${fr(least.odds)} · ${pct(least.p)}</div>`:''}${extra}</div>`;
 }
 function verdict(l,sts){
   if(!sts)return['n','pas de stats'];
@@ -465,7 +513,7 @@ function verdict(l,sts){
 function renderMatchs(){
   const comps=['Tout',...new Set(A.map(a=>a.m.comp))];
   if(!comps.includes(st.comp))st.comp='Tout';
-  let h=`<div class="sec-h"><h2>Matchs ${esc(DAY.name)}</h2><span>Touche une cote</span></div>`;
+  let h=`<div class="sec-h"><h2>Matchs ${esc(DAY.name)}</h2><span>Le meilleur pari de chaque match</span></div>`;
   h+=`<div class="chips">${comps.map(c=>`<button class="chip ${c===st.comp?'on':''}" data-comp="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
   const list=A.filter(a=>st.comp==='Tout'||a.m.comp===st.comp);
   if(!list.length)h+=`<div class="empty"><b>Aucun match</b>Choisis un autre jour en haut.</div>`;
@@ -478,9 +526,10 @@ function renderMatchs(){
     const top=legs.filter(l=>l.ok).sort((a,b)=>b.ev-a.ev)[0];
     const open=opened.has(m.id);
     return head+`<article class="match">
-      <div class="meta"><span>${time(m.when)} · ${esc(m.comp)}${m.custom?' · ajouté à la main':''}</span>${!sts?'<span class="tag n">pas de stats</span>':top?`<span class="tag g">${esc(top.label)}</span>`:'<span class="tag n">rien à jouer</span>'}</div>
+      <div class="meta"><span>${time(m.when)} · ${esc(m.comp)}${m.custom?' · ajouté à la main':''}</span>${!sts?'<span class="tag n">pas de stats</span>':top?'<span class="tag g">à jouer</span>':legs.some(l=>l.odds&&!l.sus&&l.ev>=+S.ev.value)?'<span class="tag w">risqué</span>':'<span class="tag n">rien à jouer</span>'}</div>
       ${vs(m)}
       <div class="odds">${k3}</div>
+      ${advice({m,md,legs,sts})}
       ${md?`<div class="mline"><span>Buts attendus <b>${fr(md.lH,1)} – ${fr(md.lA,1)}</b></span><span>Score probable <b>${md.top[0].s}</b></span></div>`:''}
       <button class="more" data-open="${esc(m.id)}">${open?'Masquer les détails':'Tous les paris et détails'}</button>
       ${open?`<div class="markets">
@@ -533,6 +582,7 @@ document.addEventListener('click',e=>{
   const c=e.target.closest('[data-comp]');if(c){st.comp=c.dataset.comp;renderAll();return}
   const o=e.target.closest('[data-open]');if(o){const id=o.dataset.open;opened.has(id)?opened.delete(id):opened.add(id);renderMatchs();return}
   const bg=e.target.closest('[data-big]');if(bg){const c=BIG[+bg.dataset.big];if(c){ticket=c.legs.map(l=>({mid:l.mid,key:l.key}));renderAll();toast('Combiné cote '+fr(c.o)+' ajouté au ticket')}return}
+  const gt=e.target.closest('[data-goto]');if(gt){const id=gt.dataset.goto;opened.add(id);st.tab='matchs';st.comp='Tout';renderAll();const el=document.querySelector(`[data-open="${CSS.escape(id)}"]`);if(el)el.closest('.match').scrollIntoView({block:'start'});return}
   const rm=e.target.closest('[data-rm]');if(rm){ticket=ticket.filter(x=>x.mid!==rm.dataset.rm);renderAll();return}
   const ed=e.target.closest('[data-edit]');if(ed){openForm(custom.find(m=>m.id===ed.dataset.edit));return}
   const dl=e.target.closest('[data-del]');if(dl){
