@@ -1,8 +1,12 @@
+def _read(p):
+    b=open(p,"rb").read()
+    try: return b.decode("utf-8")
+    except UnicodeDecodeError: return b.decode("cp1252",errors="replace")
 import sys,re,html,json
 res={}
 for path in sys.argv[1:]:
     lg=path.split('/')[-1][:-5]
-    s=open(path,encoding='utf-8',errors='ignore').read()
+    s=_read(path)
     tabs=[];cur=None
     for r in re.findall(r'<tr[^>]*>(.*?)</tr>',s,re.S):
         c=[re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>','',x))).strip() for x in re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>',r,re.S)]

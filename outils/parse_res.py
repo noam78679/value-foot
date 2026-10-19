@@ -1,11 +1,15 @@
 # usage: parse_res.py results-france.html ... — résultats de la saison (soccerstats results.asp)
+def _read(p):
+    b=open(p,"rb").read()
+    try: return b.decode("utf-8")
+    except UnicodeDecodeError: return b.decode("cp1252",errors="replace")
 import sys,re,html,json,datetime
 MON={m:i+1 for i,m in enumerate('Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split())}
 today=datetime.date.today(); y0=today.year if today.month>=7 else today.year-1
 res={}
 for path in sys.argv[1:]:
     lg=re.sub(r'^res-|\.html$','',path.split('/')[-1])
-    s=open(path,encoding='utf-8',errors='ignore').read(); out=[]
+    s=_read(path); out=[]
     for r in re.findall(r'<tr[^>]*>(.*?)</tr>',s,re.S):
         c=[re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>','',x))).strip() for x in re.findall(r'<td[^>]*>(.*?)</td>',r,re.S)]
         c=[x for x in c if x]
