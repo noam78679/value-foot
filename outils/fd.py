@@ -31,7 +31,8 @@ def results_main(code,text):
     for r in rows(text):
         if not r.get('FTHG') or not r.get('HomeTeam'): continue
         w=when(r['Date'],r.get('Time'))
-        out.append(dict(d=w.date().isoformat(),h=r['HomeTeam'],a=r['AwayTeam'],hg=int(r['FTHG']),ag=int(r['FTAG']),hx=num(r.get('HxG')),ax=num(r.get('AxG'))))
+        out.append(dict(d=w.date().isoformat(),h=r['HomeTeam'],a=r['AwayTeam'],hg=int(r['FTHG']),ag=int(r['FTAG']),hx=num(r.get('HxG')),ax=num(r.get('AxG')),
+            hc=num(r.get('HC')),ac=num(r.get('AC')),hy=num(r.get('HY')),ay=num(r.get('AY'))))
     return out
 def results_new(text):
     rs=rows(text)
@@ -42,7 +43,7 @@ def results_new(text):
     for r in rs:
         if r['Season']!=last: continue
         w=when(r['Date'],r.get('Time'))
-        out.append(dict(d=w.date().isoformat(),h=r['Home'],a=r['Away'],hg=int(float(r['HG'])),ag=int(float(r['AG'])),hx=None,ax=None))
+        out.append(dict(d=w.date().isoformat(),h=r['Home'],a=r['Away'],hg=int(float(r['HG'])),ag=int(float(r['AG'])),hx=None,ax=None,hc=None,ac=None,hy=None,ay=None))
     return out
 
 def fixtures(main_text,new_text):
@@ -57,3 +58,8 @@ def fixtures(main_text,new_text):
         out.append(dict(lg=k[0],when=when(r['Date'],r.get('Time')),h=r['Home'],a=r['Away'],
             mkt=dict(h=f(r.get('AvgH')),d=f(r.get('AvgD')),a=f(r.get('AvgA')),o25=None,u25=None)))
     return out
+
+# codes ESPN (compos officielles)
+ESPN={'F1':'fra.1','F2':'fra.2','E0':'eng.1','E1':'eng.2','E2':'eng.3','E3':'eng.4','SP1':'esp.1','SP2':'esp.2','I1':'ita.1','I2':'ita.2','D1':'ger.1','D2':'ger.2',
+ 'N1':'ned.1','B1':'bel.1','P1':'por.1','T1':'tur.1','G1':'gre.1','SC0':'sco.1','SC1':'sco.2','SC2':'sco.3','SC3':'sco.4','CL':'uefa.champions',
+ 'ARG':'arg.1','AUT':'aut.1','BRA':'bra.1','CHN':'chn.1','DNK':'den.1','FIN':'fin.1','IRL':'irl.1','JPN':'jpn.1','MEX':'mex.1','NOR':'nor.1','POL':'pol.1','ROU':'rou.1','SWE':'swe.1','USA':'usa.1','SWZ':'sui.1'}

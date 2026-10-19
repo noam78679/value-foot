@@ -22,7 +22,7 @@ for p in "ligue1:Ligue 1" "ligue2:Ligue 2" "premier-league:Premier League" "liga
 done
 python3 -I outils/parse_cb.py "${args[@]}" > "$T/betclic.json"
 sc=()
-for l in france france2 england spain italy germany; do
+for l in france france2 england spain italy germany england2 germany2 italy2 spain2 netherlands portugal belgium turkey greece scotland; do
   get "https://www.soccerstats.com/scorers.asp?league=$l" "$T/sc-$l.html" 'player.asp' && sc+=("$T/sc-$l.html") || echo "buteurs indisponibles : $l"
 done
 python3 -I outils/parse_sc.py "${sc[@]}" > "$T/scorers.json"

@@ -1,0 +1,26 @@
+name: Compos officielles
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: maj
+  cancel-in-progress: false
+jobs:
+  compos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Récupérer les compos des matchs qui commencent bientôt
+        run: |
+          python3 -I outils/lineups.py data.json
+          python3 -I outils/inject.py data.json analyse-paris.html
+          cp analyse-paris.html index.html
+      - name: Enregistrer
+        run: |
+          git config user.name "value-foot-bot"
+          git config user.email "value-foot-bot@users.noreply.github.com"
+          git add data.json index.html analyse-paris.html
+          git diff --cached --quiet || (git commit -m "Compos du $(TZ=Europe/Paris date '+%d/%m %H:%M')" && git pull --rebase -X theirs && git push)

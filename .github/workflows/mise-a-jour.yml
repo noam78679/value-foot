@@ -23,4 +23,4 @@ jobs:
           git config user.name "value-foot-bot"
           git config user.email "value-foot-bot@users.noreply.github.com"
           git add data.json index.html analyse-paris.html
-          git diff --cached --quiet || (git commit -m "Cotes du $(TZ=Europe/Paris date '+%d/%m %H:%M')" && git push)
+          git diff --cached --quiet || (git commit -m "Cotes du $(TZ=Europe/Paris date '+%d/%m %H:%M')" && git pull --rebase -X theirs && git push)

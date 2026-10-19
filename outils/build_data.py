@@ -39,7 +39,7 @@ if SSR and os.path.exists(SSR):
         have={(r['h'],r['a']) for r in results[lg]}
         for r in rs:
             h,a=m2(r['h']),m2(r['a'])
-            if h and a and (h,a) not in have: results[lg].append(dict(d=r['d'],h=h,a=a,hg=r['hg'],ag=r['ag'],hx=None,ax=None)); have.add((h,a))
+            if h and a and (h,a) not in have: results[lg].append(dict(d=r['d'],h=h,a=a,hg=r['hg'],ag=r['ag'],hx=None,ax=None,hc=None,ac=None,hy=None,ay=None)); have.add((h,a))
         results[lg].sort(key=lambda r:r['d'])
 
 # ---------- noms : comparateur Betclic (français) -> football-data ----------
@@ -98,6 +98,24 @@ def tstats(team,side):
     if not n: return None
     f=lambda c:round(sum(1 for x in rs if c(*x))/n,2)
     return [n,round(sum(x[0] for x in rs)/n,2),round(sum(x[1] for x in rs)/n,2),f(lambda a,b:a+b>2),f(lambda a,b:a>0 and b>0),f(lambda a,b:b==0),f(lambda a,b:a==0)]
+# corners et cartons attendus : moyennes pour/contre de chaque équipe, ramenées vers la moyenne du championnat
+def side_avgs(lg,key_h,key_a,K=4):
+    rs=[r for r in results.get(lg,[]) if r.get(key_h) is not None]
+    if len(rs)<20: return None
+    mean=sum(r[key_h]+r[key_a] for r in rs)/len(rs)/2
+    acc={}
+    for r in rs:
+        for t,f_,a_ in ((r['h'],r[key_h],r[key_a]),(r['a'],r[key_a],r[key_h])):
+            x=acc.setdefault(t,[0,0,0]); x[0]+=f_; x[1]+=a_; x[2]+=1
+    return mean,{t:((v[0]+K*mean)/(v[2]+K),(v[1]+K*mean)/(v[2]+K)) for t,v in acc.items()}
+CORN={lg:side_avgs(lg,'hc','ac') for lg in results}; CARD={lg:side_avgs(lg,'hy','ay') for lg in results}
+def expect(tab,lg,hk,ak):
+    t=tab.get(lg)
+    if not t or hk not in t[1] or ak not in t[1]: return None
+    m,v=t; return [round((v[hk][0]+v[ak][1])/2,2),round((v[ak][0]+v[hk][1])/2,2)]
+def goals_for(team):
+    rs=[r for r in results.get(team_lg.get(team),[]) if team in (r['h'],r['a'])]
+    return [sum(r['hg'] if r['h']==team else r['ag'] for r in rs),len(rs)]
 sc={}
 for t,v in scorers.items():
     k=resolve(t)
@@ -132,6 +150,14 @@ def build(lg,comp,w,hk,ak,home,away,odds,mkt,cross=False):
         if k in sc: rec[side+'s']=sc[k]
     if hk and last(hk): rec['hl'],rec['hh']=last(hk),last(hk,'h')
     if ak and last(ak): rec['al'],rec['aa']=last(ak),last(ak,'a')
+    if hk and ak and team_lg.get(hk)==team_lg.get(ak):
+        c=expect(CORN,lh,hk,ak); y=expect(CARD,lh,hk,ak)
+        if c: rec['cc']=c
+        if y: rec['cy']=y
+    if hk and ak: rec['tg']=goals_for(hk)+goals_for(ak)  # buts marqués et matchs joués : base des cotes buteurs
+    o=old.get(rec['id'],{})
+    for k in ('lu','espn'):
+        if k in o: rec[k]=o[k]  # compo déjà récupérée
     th,ta=(tstats(hk,'h') if hk else None),(tstats(ak,'a') if ak else None)
     if th and ta and not rec.get('cross'): rec['ts']=[th,ta]
     return rec
