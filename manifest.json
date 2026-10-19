@@ -1,0 +1,15 @@
+{
+  "name": "Value Foot",
+  "short_name": "Value Foot",
+  "description": "Analyse des matchs de foot et paris value sur les cotes Betclic",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1511",
+  "theme_color": "#0f6b45",
+  "lang": "fr",
+  "icons": [
+    {"src": "icone-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

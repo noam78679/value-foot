@@ -1,0 +1,422 @@
+<meta charset="utf-8">
+<title>Value Foot</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Value Foot">
+<meta name="theme-color" content="#0f6b45">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout : bande de réglages en haut, colonne d'analyse à gauche, ticket combiné collant à droite (empilé sur mobile) */
+:root{
+  --bg:#eef1ec; --surface:#ffffff; --sunk:#e3e9e3; --ink:#14201a; --muted:#5b6a61; --line:#d2dbd3;
+  --accent:#0f6b45; --accent-ink:#ffffff; --accent-soft:#d7eadf;
+  --good:#17784a; --good-soft:#dcefe4; --warn:#9a5c00; --warn-soft:#f6e8cf; --bad:#b3261e; --bad-soft:#f7dcd9;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1511; --surface:#16201a; --sunk:#1d2a22; --ink:#e4ece6; --muted:#93a39a; --line:#2a392f;
+  --accent:#43c48a; --accent-ink:#05140c; --accent-soft:#1d3a2b;
+  --good:#52cf90; --good-soft:#173527; --warn:#e6aa45; --warn-soft:#3a2c12; --bad:#f17f74; --bad-soft:#3d1c19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1511; --surface:#16201a; --sunk:#1d2a22; --ink:#e4ece6; --muted:#93a39a; --line:#2a392f;
+  --accent:#43c48a; --accent-ink:#05140c; --accent-soft:#1d3a2b;
+  --good:#52cf90; --good-soft:#173527; --warn:#e6aa45; --warn-soft:#3a2c12; --bad:#f17f74; --bad-soft:#3d1c19; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(34px,6vw,52px);font-weight:800;line-height:1;text-transform:uppercase}
+h2{font-size:24px;font-weight:700;text-transform:uppercase}
+h3{font-size:20px;font-weight:700}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+header.top{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:end;justify-content:space-between;padding-bottom:18px;border-bottom:3px solid var(--ink)}
+header.top p{margin:6px 0 0;max-width:62ch;color:var(--muted)}
+.fresh{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+.dot.old{background:var(--warn)}
+.settings{display:flex;flex-wrap:wrap;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field input,.field select{font:inherit;font-family:var(--f-mono);font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+.settings .field{width:132px}
+input:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;margin-top:24px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:28px;min-width:0}
+section>.head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.p-good{background:var(--good-soft);color:var(--good)}
+.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)}
+.p-neutral{background:var(--sunk);color:var(--muted)}
+.ev-pos{color:var(--good);font-weight:600}
+.ev-neg{color:var(--bad)}
+button{font:inherit;cursor:pointer;border-radius:6px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;padding:8px 14px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:4px 10px;font-size:13px}
+.add{background:transparent;border:1px solid var(--accent);color:var(--accent);font-weight:600;padding:3px 10px;font-size:13px;white-space:nowrap}
+.add.on{background:var(--accent);color:var(--accent-ink)}
+.day{font-family:var(--f-display);font-size:18px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:6px 0 -6px}
+details.match{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+details.match>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+details.match>summary::-webkit-details-marker{display:none}
+details.match>summary .t{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+details.match>summary .n{font-weight:600;min-width:0}
+details.match>summary .n small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+details.match[open]>summary{border-bottom:1px solid var(--line)}
+.mbody{padding:12px 14px 4px}
+.mbody .meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:10px;font-size:13px}
+.xg{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
+.xg b{font-family:var(--f-mono);font-size:20px}
+.bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:6px 0 4px;background:var(--sunk)}
+.bar span{display:block;height:100%}
+.legend{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.mbody .tools{display:flex;gap:8px;padding:10px 0;flex-wrap:wrap}
+.ticket{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);padding:18px;display:flex;flex-direction:column;gap:14px}
+.ticket .total{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ticket .total div{background:var(--sunk);border-radius:8px;padding:10px}
+.ticket .total b{display:block;font-family:var(--f-mono);font-size:22px}
+.leg{display:grid;grid-template-columns:1fr auto auto;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.leg small{grid-column:1/-1;color:var(--muted);font-size:12px}
+.x{background:transparent;border:0;color:var(--muted);font-size:18px;line-height:1;padding:2px 6px}
+.empty{color:var(--muted);font-size:14px;padding:12px}
+.note{font-size:13px;color:var(--muted);line-height:1.5}
+.combo{padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--accent)}
+.combo .stats{display:flex;flex-wrap:wrap;gap:8px 22px}
+.combo .stats b{font-family:var(--f-mono);font-size:20px;display:block}
+details.panel>summary{cursor:pointer;padding:14px 16px;font-family:var(--f-display);font-size:20px;font-weight:700;text-transform:uppercase}
+.form{padding:0 16px 16px;display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:12px;margin:0;min-width:0}
+legend{font-size:12px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted);padding:0 6px}
+.warnbox{border-left:4px solid var(--warn);background:var(--warn-soft);padding:12px 14px;border-radius:0 8px 8px 0;font-size:13px}
+.warnbox b{color:var(--warn)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:10}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:4px 12px;border-radius:99px;font-size:13px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.add,.btn,.chip{transition:background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="label">Analyse automatique · modèle de Poisson · cotes Betclic</div>
+      <h1>Value Foot</h1>
+      <p>Les matchs à venir des 5 grands championnats et de la Ligue des champions sont déjà chargés, avec les cotes Betclic. L'app te dit sur quel match parier, quel pari prendre et combien miser.</p>
+      <div class="fresh" id="fresh"></div>
+    </div>
+    <div class="settings">
+      <label class="field"><span class="label">Bankroll (€)</span><input id="s-bank" inputmode="decimal" value="100"></label>
+      <label class="field"><span class="label">Période</span><select id="s-days"><option value="2">48 heures</option><option value="4">4 jours</option><option value="7" selected>7 jours</option><option value="15">15 jours</option></select></label>
+      <label class="field"><span class="label">Prudence</span><select id="s-w"><option value="0.5">Audacieux</option><option value="0.35" selected>Normal</option><option value="0.2">Prudent</option></select></label>
+      <label class="field"><span class="label">Value mini</span><select id="s-ev"><option value="0.02">2 %</option><option value="0.04" selected>4 %</option><option value="0.07">7 %</option><option value="0.1">10 %</option></select></label>
+      <label class="field"><span class="label">Proba mini</span><select id="s-p"><option value="0.3">30 %</option><option value="0.4" selected>40 %</option><option value="0.5">50 %</option><option value="0.6">60 %</option></select></label>
+      <label class="field"><span class="label">Matchs / combiné</span><select id="s-legs"><option>2</option><option selected>3</option><option>4</option></select></label>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="col">
+      <section>
+        <div class="head"><h2>Les paris à jouer</h2><span class="note">Cote Betclic plus haute que la vraie probabilité. Mise : ¼ de Kelly, 5 % de la bankroll au plus.</span></div>
+        <div class="panel scroll"><table id="picks"></table></div>
+      </section>
+
+      <section>
+        <div class="head"><h2>Combiné conseillé</h2><span class="note">Le pari value le plus sûr de chaque match, un seul par match.</span></div>
+        <div class="panel combo" id="combo"></div>
+      </section>
+
+      <section>
+        <div class="head"><h2>Buts : à vérifier sur Betclic</h2><span class="note">Je n'ai pas les cotes buts de Betclic. Joue seulement si la cote affichée sur Betclic est au moins égale à la cote mini.</span></div>
+        <div class="panel scroll"><table id="goals"></table></div>
+      </section>
+
+      <section>
+        <div class="head"><h2>Tous les matchs</h2><div class="chips" id="comps"></div></div>
+        <div class="col" id="matches" style="gap:10px"></div>
+      </section>
+
+      <details class="panel" id="form-wrap">
+        <summary id="form-title">Ajouter un match à la main</summary>
+        <form class="form" id="form" autocomplete="off">
+          <p class="note" style="margin:0">Pour un match d'un autre championnat. Il reste dans ce navigateur.</p>
+          <fieldset><legend>Match</legend>
+            <div class="grid wide">
+              <label class="field"><span class="label">Compétition</span><input id="f-comp" placeholder="Ligue 2"></label>
+              <label class="field"><span class="label">Date et heure</span><input id="f-when" type="datetime-local" required></label>
+              <label class="field"><span class="label">Domicile</span><input id="f-home" required></label>
+              <label class="field"><span class="label">Extérieur</span><input id="f-away" required></label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Stats (moyennes par match)</legend>
+            <div class="grid">
+              <label class="field"><span class="label">Dom. marqués à dom.</span><input id="f-hGF" inputmode="decimal" required></label>
+              <label class="field"><span class="label">Dom. encaissés à dom.</span><input id="f-hGA" inputmode="decimal" required></label>
+              <label class="field"><span class="label">Ext. marqués à l'ext.</span><input id="f-aGF" inputmode="decimal" required></label>
+              <label class="field"><span class="label">Ext. encaissés à l'ext.</span><input id="f-aGA" inputmode="decimal" required></label>
+              <label class="field"><span class="label">Ligue : buts dom.</span><input id="f-lgH" inputmode="decimal" value="1.5"></label>
+              <label class="field"><span class="label">Ligue : buts ext.</span><input id="f-lgA" inputmode="decimal" value="1.2"></label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Cotes Betclic</legend>
+            <div class="grid">
+              <label class="field"><span class="label">1</span><input id="f-h" inputmode="decimal"></label>
+              <label class="field"><span class="label">N</span><input id="f-d" inputmode="decimal"></label>
+              <label class="field"><span class="label">2</span><input id="f-a" inputmode="decimal"></label>
+              <label class="field"><span class="label">+2,5 buts</span><input id="f-o25" inputmode="decimal"></label>
+              <label class="field"><span class="label">−2,5 buts</span><input id="f-u25" inputmode="decimal"></label>
+              <label class="field"><span class="label">2 éq. marquent oui</span><input id="f-by" inputmode="decimal"></label>
+              <label class="field"><span class="label">2 éq. marquent non</span><input id="f-bn" inputmode="decimal"></label>
+            </div>
+          </fieldset>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn" type="submit" id="f-submit">Ajouter le match</button>
+            <button class="btn ghost" type="button" id="f-cancel">Annuler</button>
+          </div>
+        </form>
+      </details>
+
+      <div class="warnbox"><b>À savoir avant de parier.</b> Aucun modèle ne garantit un gain : un pari à 60 % perd 4 fois sur 10. La value se juge sur des centaines de paris, pas sur un week-end. Plus un combiné a de matchs, plus il perd souvent. En début de saison les stats reposent sur peu de matchs. Vérifie toujours la cote sur Betclic avant de valider : elle bouge. Ne mise que ce que tu peux perdre. Besoin d'aide : Joueurs Info Service, 09 74 75 13 13. Interdit aux mineurs.</div>
+    </div>
+
+    <aside>
+      <div class="panel ticket">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><h2>Mon ticket</h2><button class="x" id="t-clear" title="Vider le ticket" aria-label="Vider le ticket">×</button></div>
+        <div id="t-legs"></div>
+        <div class="total">
+          <div><span class="label">Cote totale</span><b id="t-odds">–</b></div>
+          <div><span class="label">Proba de gagner</span><b id="t-prob">–</b></div>
+          <div><span class="label">Value</span><b id="t-ev">–</b></div>
+          <div><span class="label">Gain si gagné</span><b id="t-win">–</b></div>
+        </div>
+        <label class="field"><span class="label">Mise (€)</span><input id="t-stake" inputmode="decimal" value="5"></label>
+        <p class="note" style="margin:0">Sur Betclic, les cotes d'un combiné <b>se multiplient</b> : 1,50 × 1,80 × 2,00 = 5,40. Une sélection par match.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script id="data" type="application/json">{"updated": "2026-10-19T14:54+02:00", "source": "Cotes Betclic relevées sur compare-bet.fr · stats domicile/extérieur soccerstats.com", "matches": [{"id": "brest-nice-2026-10-23", "comp": "Ligue 1", "when": "2026-10-23T20:45+02:00", "home": "Brest", "away": "Nice", "odds": {"h": 2.1, "d": 3.4, "a": 3.05}, "hGF": 1.966, "hGA": 1.362, "aGF": 0.883, "aGA": 1.686, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "toulouse-troyes-2026-10-24", "comp": "Ligue 1", "when": "2026-10-24T17:15+02:00", "home": "Toulouse", "away": "Troyes", "odds": {"h": 1.56, "d": 4.0, "a": 4.7}, "hGF": 1.479, "hGA": 1.509, "aGF": 0.958, "aGA": 1.87, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "lens-paris-fc-2026-10-24", "comp": "Ligue 1", "when": "2026-10-24T20:45+02:00", "home": "Lens", "away": "Paris FC", "odds": {"h": 2.2, "d": 3.5, "a": 2.78}, "hGF": 2.008, "hGA": 1.398, "aGF": 1.324, "aGA": 1.269, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "monaco-lille-2026-10-25", "comp": "Ligue 1", "when": "2026-10-25T15:00+01:00", "home": "Monaco", "away": "Lille", "odds": {"h": 2.03, "d": 3.37, "a": 3.2}, "hGF": 1.729, "hGA": 1.105, "aGF": 1.362, "aGA": 1.074, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "angers-lorient-2026-10-25", "comp": "Ligue 1", "when": "2026-10-25T17:15+01:00", "home": "Angers", "away": "Lorient", "odds": {"h": 2.63, "d": 3.2, "a": 2.45}, "hGF": 1.418, "hGA": 1.889, "aGF": 1.031, "aGA": 1.116, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "auxerre-le-mans-2026-10-25", "comp": "Ligue 1", "when": "2026-10-25T17:15+01:00", "home": "Auxerre", "away": "Le Mans", "odds": {"h": 2.03, "d": 3.4, "a": 3.18}, "hGF": 1.548, "hGA": 1.616, "aGF": 1.362, "aGA": 2.05, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "marseille-le-havre-2026-10-25", "comp": "Ligue 1", "when": "2026-10-25T17:15+01:00", "home": "Marseille", "away": "Le Havre", "odds": {"h": 1.51, "d": 4.2, "a": 5.0}, "hGF": 2.008, "hGA": 1.473, "aGF": 1.069, "aGA": 1.66, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "rennes-strasbourg-2026-10-25", "comp": "Ligue 1", "when": "2026-10-25T17:15+01:00", "home": "Rennes", "away": "Strasbourg", "odds": {"h": 1.67, "d": 4.05, "a": 3.9}, "hGF": 2.145, "hGA": 1.457, "aGF": 1.691, "aGA": 2.145, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "psg-lyon-2026-10-25", "comp": "Ligue 1", "when": "2026-10-25T20:45+01:00", "home": "PSG", "away": "Lyon", "odds": {"h": 1.31, "d": 5.4, "a": 6.75}, "hGF": 1.884, "hGA": 1.366, "aGF": 1.36, "aGA": 1.074, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "le-havre-psg-2026-10-30", "comp": "Ligue 1", "when": "2026-10-30T20:00+01:00", "home": "Le Havre", "away": "PSG", "odds": {"h": 9.25, "d": 6.1, "a": 1.18}, "hGF": 0.966, "hGA": 1.459, "aGF": 1.779, "aGA": 1.38, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "lille-lens-2026-10-30", "comp": "Ligue 1", "when": "2026-10-30T22:05+01:00", "home": "Lille", "away": "Lens", "odds": {"h": 2.1, "d": 3.43, "a": 2.83}, "hGF": 1.556, "hGA": 0.962, "aGF": 1.657, "aGA": 1.694, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "nice-rennes-2026-10-31", "comp": "Ligue 1", "when": "2026-10-31T18:15+01:00", "home": "Nice", "away": "Rennes", "odds": {"h": 2.57, "d": 3.55, "a": 2.22}, "hGF": 1.304, "hGA": 1.093, "aGF": 1.655, "aGA": 2.23, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "lorient-brest-2026-10-31", "comp": "Ligue 1", "when": "2026-10-31T21:45+01:00", "home": "Lorient", "away": "Brest", "odds": {"h": 2.37, "d": 3.2, "a": 2.58}, "hGF": 1.342, "hGA": 1.095, "aGF": 1.524, "aGA": 1.556, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "lyon-angers-2026-10-31", "comp": "Ligue 1", "when": "2026-10-31T21:45+01:00", "home": "Lyon", "away": "Angers", "odds": {"h": 1.31, "d": 4.8, "a": 6.6}, "hGF": 2.069, "hGA": 0.962, "aGF": 1.326, "aGA": 1.939, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "troyes-le-mans-2026-10-31", "comp": "Ligue 1", "when": "2026-10-31T21:45+01:00", "home": "Troyes", "away": "Le Mans", "odds": {"h": 2.07, "d": 3.32, "a": 2.97}, "hGF": 1.066, "hGA": 2.122, "aGF": 1.362, "aGA": 2.05, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "strasbourg-auxerre-2026-11-01", "comp": "Ligue 1", "when": "2026-11-01T16:00+01:00", "home": "Strasbourg", "away": "Auxerre", "odds": {"h": 1.72, "d": 3.73, "a": 3.7}, "hGF": 1.59, "hGA": 1.655, "aGF": 1.559, "aGA": 2.521, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "paris-fc-monaco-2026-11-01", "comp": "Ligue 1", "when": "2026-11-01T18:15+01:00", "home": "Paris FC", "away": "Monaco", "odds": {"h": 2.22, "d": 3.4, "a": 2.65}, "hGF": 1.931, "hGA": 1.128, "aGF": 1.226, "aGA": 1.104, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "marseille-toulouse-2026-11-01", "comp": "Ligue 1", "when": "2026-11-01T21:45+01:00", "home": "Marseille", "away": "Toulouse", "odds": {"h": 1.78, "d": 3.68, "a": 3.5}, "hGF": 2.008, "hGA": 1.473, "aGF": 1.791, "aGA": 1.594, "lgH": 1.635, "lgA": 1.413, "gp": [7, 7]}, {"id": "tottenham-coventry-2026-10-19", "comp": "Premier League", "when": "2026-10-19T21:00+02:00", "home": "Tottenham", "away": "Coventry", "odds": {"h": 1.49, "d": 4.3, "a": 5.4}, "hGF": 1.025, "hGA": 1.428, "aGF": 0.835, "aGA": 1.615, "lgH": 1.594, "lgA": 1.29, "gp": [6, 6]}, {"id": "ipswich-town-nottingham-forest-2026-10-23", "comp": "Premier League", "when": "2026-10-23T21:00+02:00", "home": "Ipswich Town", "away": "Nottingham Forest", "odds": {"h": 2.97, "d": 3.37, "a": 2.15}, "hGF": 1.547, "hGA": 1.476, "aGF": 1.237, "aGA": 1.682, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "aston-villa-manchester-city-2026-10-24", "comp": "Premier League", "when": "2026-10-24T13:30+02:00", "home": "Aston Villa", "away": "Manchester City", "odds": {"h": 4.2, "d": 3.93, "a": 1.65}, "hGF": 1.262, "hGA": 1.447, "aGF": 2.061, "aGA": 1.04, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "arsenal-everton-2026-10-24", "comp": "Premier League", "when": "2026-10-24T16:00+02:00", "home": "Arsenal", "away": "Everton", "odds": {"h": 1.34, "d": 4.6, "a": 7.5}, "hGF": 1.88, "hGA": 0.903, "aGF": 1.12, "aGA": 1.262, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "coventry-fulham-2026-10-24", "comp": "Premier League", "when": "2026-10-24T16:00+02:00", "home": "Coventry", "away": "Fulham", "odds": {"h": 2.82, "d": 3.4, "a": 2.22}, "hGF": 1.339, "hGA": 1.725, "aGF": 0.862, "aGA": 1.392, "lgH": 1.594, "lgA": 1.29, "gp": [6, 7]}, {"id": "chelsea-tottenham-2026-10-24", "comp": "Premier League", "when": "2026-10-24T18:30+02:00", "home": "Chelsea", "away": "Tottenham", "odds": {"h": 1.66, "d": 3.95, "a": 4.1}, "hGF": 2.584, "hGA": 1.628, "aGF": 0.76, "aGA": 1.523, "lgH": 1.594, "lgA": 1.29, "gp": [7, 6]}, {"id": "crystal-palace-newcastle-2026-10-25", "comp": "Premier League", "when": "2026-10-25T15:00+01:00", "home": "Crystal Palace", "away": "Newcastle", "odds": {"h": 2.75, "d": 3.48, "a": 2.23}, "hGF": 1.682, "hGA": 1.991, "aGF": 1.301, "aGA": 2.121, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "hull-city-brentford-2026-10-25", "comp": "Premier League", "when": "2026-10-25T15:00+01:00", "home": "Hull City", "away": "Brentford", "odds": {"h": 4.15, "d": 3.73, "a": 1.69}, "hGF": 1.416, "hGA": 0.974, "aGF": 1.517, "aGA": 1.528, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "liverpool-brighton-2026-10-25", "comp": "Premier League", "when": "2026-10-25T15:00+01:00", "home": "Liverpool", "away": "Brighton", "odds": {"h": 2.0, "d": 3.6, "a": 3.1}, "hGF": 1.238, "hGA": 1.342, "aGF": 2.424, "aGA": 1.286, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "manchester-united-bournemouth-2026-10-25", "comp": "Premier League", "when": "2026-10-25T15:00+01:00", "home": "Manchester United", "away": "Bournemouth", "odds": {"h": 1.77, "d": 3.78, "a": 3.73}, "hGF": 1.725, "hGA": 1.301, "aGF": 1.266, "aGA": 2.189, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "sunderland-leeds-2026-10-25", "comp": "Premier League", "when": "2026-10-25T17:30+01:00", "home": "Sunderland", "away": "Leeds", "odds": {"h": 2.78, "d": 3.2, "a": 2.33}, "hGF": 0.996, "hGA": 1.441, "aGF": 1.155, "aGA": 1.219, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "chelsea-manchester-united-2026-10-31", "comp": "Premier League", "when": "2026-10-31T14:30+01:00", "home": "Chelsea", "away": "Manchester United", "odds": {"h": 1.88, "d": 3.6, "a": 3.23}, "hGF": 2.584, "hGA": 1.628, "aGF": 1.171, "aGA": 1.553, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "bournemouth-leeds-2026-10-31", "comp": "Premier League", "when": "2026-10-31T17:00+01:00", "home": "Bournemouth", "away": "Leeds", "odds": {"h": 2.07, "d": 3.32, "a": 2.98}, "hGF": 1.414, "hGA": 1.266, "aGF": 1.155, "aGA": 1.219, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "brentford-nottingham-forest-2026-10-31", "comp": "Premier League", "when": "2026-10-31T17:00+01:00", "home": "Brentford", "away": "Nottingham Forest", "odds": {"h": 1.92, "d": 3.4, "a": 3.27}, "hGF": 1.87, "hGA": 1.008, "aGF": 1.237, "aGA": 1.682, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "coventry-sunderland-2026-10-31", "comp": "Premier League", "when": "2026-10-31T17:00+01:00", "home": "Coventry", "away": "Sunderland", "odds": {"h": 2.67, "d": 3.23, "a": 2.3}, "hGF": 1.339, "hGA": 1.725, "aGF": 1.145, "aGA": 2.109, "lgH": 1.594, "lgA": 1.29, "gp": [6, 7]}, {"id": "hull-city-ipswich-town-2026-10-31", "comp": "Premier League", "when": "2026-10-31T17:00+01:00", "home": "Hull City", "away": "Ipswich Town", "odds": {"h": 2.42, "d": 3.25, "a": 2.5}, "hGF": 1.416, "hGA": 0.974, "aGF": 1.503, "aGA": 2.248, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "manchester-city-brighton-2026-10-31", "comp": "Premier League", "when": "2026-10-31T17:00+01:00", "home": "Manchester City", "away": "Brighton", "odds": {"h": 1.62, "d": 3.9, "a": 4.1}, "hGF": 2.404, "hGA": 1.276, "aGF": 2.424, "aGA": 1.286, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "tottenham-crystal-palace-2026-10-31", "comp": "Premier League", "when": "2026-10-31T19:30+01:00", "home": "Tottenham", "away": "Crystal Palace", "odds": {"h": 1.57, "d": 3.8, "a": 4.55}, "hGF": 1.025, "hGA": 1.428, "aGF": 1.039, "aGA": 2.126, "lgH": 1.594, "lgA": 1.29, "gp": [6, 7]}, {"id": "aston-villa-fulham-2026-10-31", "comp": "Premier League", "when": "2026-10-31T22:00+01:00", "home": "Aston Villa", "away": "Fulham", "odds": {"h": 1.95, "d": 3.37, "a": 3.23}, "hGF": 1.262, "hGA": 1.447, "aGF": 0.862, "aGA": 1.392, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "liverpool-arsenal-2026-11-01", "comp": "Premier League", "when": "2026-11-01T18:30+01:00", "home": "Liverpool", "away": "Arsenal", "odds": {"h": 3.05, "d": 3.42, "a": 2.0}, "hGF": 1.238, "hGA": 1.342, "aGF": 1.203, "aGA": 1.058, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "newcastle-everton-2026-11-02", "comp": "Premier League", "when": "2026-11-02T22:00+01:00", "home": "Newcastle", "away": "Everton", "odds": {"h": 2.02, "d": 3.43, "a": 3.0}, "hGF": 1.553, "hGA": 1.497, "aGF": 1.12, "aGA": 1.262, "lgH": 1.594, "lgA": 1.29, "gp": [7, 7]}, {"id": "getafe-rayo-vallecano-2026-10-19", "comp": "Liga", "when": "2026-10-19T21:00+02:00", "home": "Getafe", "away": "Rayo Vallecano", "odds": {"h": 2.92, "d": 2.87, "a": 2.5}, "hGF": 1.124, "hGA": 0.946, "aGF": 1.321, "aGA": 2.441, "lgH": 1.724, "lgA": 1.356, "gp": [8, 7]}, {"id": "levante-athletic-bilbao-2026-10-21", "comp": "Liga", "when": "2026-10-21T20:00+02:00", "home": "Levante", "away": "Athletic Bilbao", "odds": {"h": 3.23, "d": 3.22, "a": 2.08}, "hGF": 2.247, "hGA": 2.024, "aGF": 0.996, "aGA": 1.162, "lgH": 1.724, "lgA": 1.356, "gp": [8, 7]}, {"id": "alavés-malaga-2026-10-23", "comp": "Liga", "when": "2026-10-23T21:00+02:00", "home": "Alavés", "away": "Malaga", "odds": {"h": 1.7, "d": 3.45, "a": 4.45}, "hGF": 1.822, "hGA": 1.097, "aGF": 0.695, "aGA": 1.981, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "rayo-vallecano-elche-2026-10-24", "comp": "Liga", "when": "2026-10-24T14:00+02:00", "home": "Rayo Vallecano", "away": "Elche", "odds": {"h": 1.7, "d": 3.63, "a": 4.2}, "hGF": 1.826, "hGA": 1.529, "aGF": 1.304, "aGA": 1.587, "lgH": 1.724, "lgA": 1.356, "gp": [7, 9]}, {"id": "santander-espanyol-barcelone-2026-10-24", "comp": "Liga", "when": "2026-10-24T16:15+02:00", "home": "Santander", "away": "Espanyol Barcelone", "odds": {"h": 2.33, "d": 3.48, "a": 2.6}, "hGF": 1.904, "hGA": 1.824, "aGF": 1.234, "aGA": 1.469, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "valence-villarreal-2026-10-24", "comp": "Liga", "when": "2026-10-24T18:30+02:00", "home": "Valence", "away": "Villarreal", "odds": {"h": 3.03, "d": 3.45, "a": 2.08}, "hGF": 0.87, "hGA": 1.587, "aGF": 1.354, "aGA": 1.549, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "atletico-madrid-la-corogne-2026-10-24", "comp": "Liga", "when": "2026-10-24T21:00+02:00", "home": "Atletico Madrid", "away": "La Corogne", "odds": {"h": 1.22, "d": 5.75, "a": 9.75}, "hGF": 2.216, "hGA": 0.951, "aGF": 1.49, "aGA": 1.669, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "athletic-bilbao-getafe-2026-10-25", "comp": "Liga", "when": "2026-10-25T15:00+01:00", "home": "Athletic Bilbao", "away": "Getafe", "odds": {"h": 1.57, "d": 3.68, "a": 5.25}, "hGF": 1.385, "hGA": 1.065, "aGF": 0.57, "aGA": 1.748, "lgH": 1.724, "lgA": 1.356, "gp": [7, 8]}, {"id": "celta-vigo-betis-séville-2026-10-25", "comp": "Liga", "when": "2026-10-25T16:15+01:00", "home": "Celta Vigo", "away": "Betis Séville", "odds": {"h": 2.68, "d": 3.35, "a": 2.33}, "hGF": 1.635, "hGA": 1.112, "aGF": 1.473, "aGA": 1.739, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "real-sociedad-levante-2026-10-25", "comp": "Liga", "when": "2026-10-25T19:30+01:00", "home": "Real Sociedad", "away": "Levante", "odds": {"h": 1.66, "d": 3.88, "a": 4.2}, "hGF": 1.645, "hGA": 1.501, "aGF": 0.913, "aGA": 1.702, "lgH": 1.724, "lgA": 1.356, "gp": [9, 8]}, {"id": "fc-barcelone-real-madrid-2026-10-25", "comp": "Liga", "when": "2026-10-25T21:00+01:00", "home": "FC Barcelone", "away": "Real Madrid", "odds": {"h": 1.51, "d": 4.95, "a": 4.25}, "hGF": 3.623, "hGA": 1.079, "aGF": 1.668, "aGA": 1.463, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "fc-séville-osasuna-2026-10-26", "comp": "Liga", "when": "2026-10-26T21:00+01:00", "home": "FC Séville", "away": "Osasuna", "odds": {"h": 1.88, "d": 3.28, "a": 3.83}, "hGF": 1.539, "hGA": 1.573, "aGF": 1.306, "aGA": 2.681, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "villarreal-espanyol-barcelone-2026-10-30", "comp": "Liga", "when": "2026-10-30T21:00+01:00", "home": "Villarreal", "away": "Espanyol Barcelone", "odds": {"h": 1.5, "d": 4.0, "a": 4.9}, "hGF": 1.604, "hGA": 1.39, "aGF": 1.234, "aGA": 1.469, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "levante-atletico-madrid-2026-10-31", "comp": "Liga", "when": "2026-10-31T14:00+01:00", "home": "Levante", "away": "Atletico Madrid", "odds": {"h": 4.95, "d": 4.05, "a": 1.49}, "hGF": 2.247, "hGA": 2.024, "aGF": 1.688, "aGA": 1.207, "lgH": 1.724, "lgA": 1.356, "gp": [8, 9]}, {"id": "rayo-vallecano-celta-vigo-2026-10-31", "comp": "Liga", "when": "2026-10-31T16:15+01:00", "home": "Rayo Vallecano", "away": "Celta Vigo", "odds": {"h": 2.08, "d": 3.18, "a": 3.07}, "hGF": 1.826, "hGA": 1.529, "aGF": 0.806, "aGA": 0.892, "lgH": 1.724, "lgA": 1.356, "gp": [7, 9]}, {"id": "betis-séville-malaga-2026-10-31", "comp": "Liga", "when": "2026-10-31T18:30+01:00", "home": "Betis Séville", "away": "Malaga", "odds": {"h": 1.34, "d": 4.75, "a": 6.25}, "hGF": 1.918, "hGA": 1.38, "aGF": 0.695, "aGA": 1.981, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "fc-barcelone-alavés-2026-10-31", "comp": "Liga", "when": "2026-10-31T21:00+01:00", "home": "FC Barcelone", "away": "Alavés", "odds": {"h": 1.09, "d": 7.75, "a": 13.75}, "hGF": 3.623, "hGA": 1.079, "aGF": 1.09, "aGA": 1.398, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "getafe-fc-séville-2026-11-01", "comp": "Liga", "when": "2026-11-01T14:00+01:00", "home": "Getafe", "away": "FC Séville", "odds": {"h": 2.55, "d": 2.87, "a": 2.65}, "hGF": 1.124, "hGA": 0.946, "aGF": 1.561, "aGA": 1.827, "lgH": 1.724, "lgA": 1.356, "gp": [8, 9]}, {"id": "santander-real-madrid-2026-11-01", "comp": "Liga", "when": "2026-11-01T16:15+01:00", "home": "Santander", "away": "Real Madrid", "odds": {"h": 8.5, "d": 6.1, "a": 1.19}, "hGF": 1.904, "hGA": 1.824, "aGF": 1.668, "aGA": 1.463, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "elche-valence-2026-11-01", "comp": "Liga", "when": "2026-11-01T18:30+01:00", "home": "Elche", "away": "Valence", "odds": {"h": 2.3, "d": 3.17, "a": 2.72}, "hGF": 1.333, "hGA": 2.001, "aGF": 0.995, "aGA": 1.675, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "athletic-bilbao-real-sociedad-2026-11-01", "comp": "Liga", "when": "2026-11-01T21:00+01:00", "home": "Athletic Bilbao", "away": "Real Sociedad", "odds": {"h": 1.91, "d": 3.35, "a": 3.37}, "hGF": 1.385, "hGA": 1.065, "aGF": 1.91, "aGA": 2.041, "lgH": 1.724, "lgA": 1.356, "gp": [7, 9]}, {"id": "la-corogne-osasuna-2026-11-02", "comp": "Liga", "when": "2026-11-02T22:00+01:00", "home": "La Corogne", "away": "Osasuna", "odds": {"h": 2.1, "d": 3.1, "a": 3.13}, "hGF": 1.458, "hGA": 1.147, "aGF": 1.306, "aGA": 2.681, "lgH": 1.724, "lgA": 1.356, "gp": [9, 9]}, {"id": "monza-cagliari-2026-10-19", "comp": "Serie A", "when": "2026-10-19T18:30+02:00", "home": "Monza", "away": "Cagliari", "odds": {"h": 2.23, "d": 3.13, "a": 3.1}, "hGF": 1.667, "hGA": 1.823, "aGF": 1.264, "aGA": 0.886, "lgH": 1.544, "lgA": 1.397, "gp": [6, 6]}, {"id": "parme-torino-2026-10-19", "comp": "Serie A", "when": "2026-10-19T20:45+02:00", "home": "Parme", "away": "Torino", "odds": {"h": 3.05, "d": 3.0, "a": 2.33}, "hGF": 1.152, "hGA": 1.311, "aGF": 1.304, "aGA": 1.482, "lgH": 1.544, "lgA": 1.397, "gp": [6, 6]}, {"id": "torino-monza-2026-10-23", "comp": "Serie A", "when": "2026-10-23T20:45+02:00", "home": "Torino", "away": "Monza", "odds": {"h": 2.02, "d": 3.3, "a": 3.32}, "hGF": 1.283, "hGA": 1.494, "aGF": 1.345, "aGA": 2.27, "lgH": 1.544, "lgA": 1.397, "gp": [6, 6]}, {"id": "cagliari-bologne-2026-10-24", "comp": "Serie A", "when": "2026-10-24T15:00+02:00", "home": "Cagliari", "away": "Bologne", "odds": {"h": 2.98, "d": 3.07, "a": 2.28}, "hGF": 1.128, "hGA": 0.923, "aGF": 0.994, "aGA": 1.351, "lgH": 1.544, "lgA": 1.397, "gp": [6, 7]}, {"id": "come-sassuolo-2026-10-24", "comp": "Serie A", "when": "2026-10-24T15:00+02:00", "home": "Come", "away": "Sassuolo", "odds": {"h": 1.42, "d": 4.65, "a": 5.6}, "hGF": 1.487, "hGA": 1.035, "aGF": 1.495, "aGA": 2.064, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "naples-as-rome-2026-10-24", "comp": "Serie A", "when": "2026-10-24T18:00+02:00", "home": "Naples", "away": "AS Rome", "odds": {"h": 2.75, "d": 3.27, "a": 2.33}, "hGF": 1.573, "hGA": 1.031, "aGF": 1.811, "aGA": 0.729, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "lazio-rome-parme-2026-10-24", "comp": "Serie A", "when": "2026-10-24T20:45+02:00", "home": "Lazio Rome", "away": "Parme", "odds": {"h": 1.43, "d": 4.15, "a": 6.25}, "hGF": 1.849, "hGA": 1.03, "aGF": 0.852, "aGA": 1.859, "lgH": 1.544, "lgA": 1.397, "gp": [7, 6]}, {"id": "inter-milan-fiorentina-2026-10-25", "comp": "Serie A", "when": "2026-10-25T12:30+01:00", "home": "Inter Milan", "away": "Fiorentina", "odds": {"h": 1.31, "d": 5.25, "a": 6.9}, "hGF": 2.823, "hGA": 1.395, "aGF": 1.401, "aGA": 2.194, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "atalanta-bergame-frosinone-calcio-2026-10-25", "comp": "Serie A", "when": "2026-10-25T15:00+01:00", "home": "Atalanta Bergame", "away": "Frosinone Calcio", "odds": {"h": 1.67, "d": 4.05, "a": 3.93}, "hGF": 1.616, "hGA": 1.262, "aGF": 1.477, "aGA": 1.421, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "genoa-venezia-2026-10-25", "comp": "Serie A", "when": "2026-10-25T15:00+01:00", "home": "Genoa", "away": "Venezia", "odds": {"h": 2.0, "d": 3.32, "a": 3.32}, "hGF": 1.13, "hGA": 1.729, "aGF": 1.105, "aGA": 2.153, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "lecce-juventus-turin-2026-10-25", "comp": "Serie A", "when": "2026-10-25T18:00+01:00", "home": "Lecce", "away": "Juventus Turin", "odds": {"h": 6.75, "d": 4.25, "a": 1.39}, "hGF": 1.421, "hGA": 1.884, "aGF": 1.328, "aGA": 1.379, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "udinese-milan-ac-2026-10-25", "comp": "Serie A", "when": "2026-10-25T20:45+01:00", "home": "Udinese", "away": "Milan AC", "odds": {"h": 4.8, "d": 3.73, "a": 1.6}, "hGF": 1.079, "hGA": 1.73, "aGF": 1.562, "aGA": 1.304, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "sassuolo-lazio-rome-2026-10-27", "comp": "Serie A", "when": "2026-10-27T19:30+01:00", "home": "Sassuolo", "away": "Lazio Rome", "odds": {"h": 2.63, "d": 3.32, "a": 2.27}, "hGF": 1.766, "hGA": 1.514, "aGF": 1.762, "aGA": 0.793, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7]}, {"id": "as-rome-cagliari-2026-10-27", "comp": "Serie A", "when": "2026-10-27T21:45+01:00", "home": "AS Rome", "away": "Cagliari", "odds": {"h": 1.29, "d": 4.7, "a": 7.5}, "hGF": 2.138, "hGA": 0.894, "aGF": 1.264, "aGA": 0.886, "lgH": 1.544, "lgA": 1.397, "gp": [7, 6]}, {"id": "torino-come-2026-10-27", "comp": "Serie A", "when": "2026-10-27T21:45+01:00", "home": "Torino", "away": "Come", "odds": {"h": 4.15, "d": 3.55, "a": 1.67}, "hGF": 1.283, "hGA": 1.494, "aGF": 1.723, "aGA": 1.277, "lgH": 1.544, "lgA": 1.397, "gp": [6, 7]}, {"id": "stuttgart-borussia-m-gladbach-2026-10-23", "comp": "Bundesliga", "when": "2026-10-23T20:30+02:00", "home": "Stuttgart", "away": "Borussia M'gladbach", "odds": {"h": 1.32, "d": 5.5, "a": 6.25}, "hGF": 2.031, "hGA": 1.268, "aGF": 0.952, "aGA": 3.09, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "augsbourg-union-berlin-2026-10-24", "comp": "Bundesliga", "when": "2026-10-24T15:30+02:00", "home": "Augsbourg", "away": "Union Berlin", "odds": {"h": 1.76, "d": 3.85, "a": 3.68}, "hGF": 2.551, "hGA": 1.413, "aGF": 0.839, "aGA": 3.428, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "cologne-schalke-04-2026-10-24", "comp": "Bundesliga", "when": "2026-10-24T15:30+02:00", "home": "Cologne", "away": "Schalke 04", "odds": {"h": 1.94, "d": 3.7, "a": 3.18}, "hGF": 2.028, "hGA": 1.381, "aGF": 1.158, "aGA": 1.976, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "mayence-werder-breme-2026-10-24", "comp": "Bundesliga", "when": "2026-10-24T15:30+02:00", "home": "Mayence", "away": "Werder Breme", "odds": {"h": 1.63, "d": 4.0, "a": 4.2}, "hGF": 2.115, "hGA": 1.682, "aGF": 1.413, "aGA": 2.345, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "paderborn-hambourg-2026-10-24", "comp": "Bundesliga", "when": "2026-10-24T15:30+02:00", "home": "Paderborn", "away": "Hambourg", "odds": {"h": 2.08, "d": 3.63, "a": 2.9}, "hGF": 1.54, "hGA": 1.317, "aGF": 1.111, "aGA": 2.722, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "rb-leipzig-elversberg-2026-10-24", "comp": "Bundesliga", "when": "2026-10-24T15:30+02:00", "home": "RB Leipzig", "away": "Elversberg", "odds": {"h": 1.34, "d": 5.25, "a": 6.0}, "hGF": 3.329, "hGA": 0.937, "aGF": 1.413, "aGA": 1.96, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "borussia-dortmund-eintracht-francfort-2026-10-24", "comp": "Bundesliga", "when": "2026-10-24T18:30+02:00", "home": "Borussia Dortmund", "away": "Eintracht Francfort", "odds": {"h": 1.43, "d": 4.9, "a": 5.1}, "hGF": 2.293, "hGA": 0.936, "aGF": 1.571, "aGA": 2.884, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "hoffenheim-bayer-leverkusen-2026-10-25", "comp": "Bundesliga", "when": "2026-10-25T15:30+01:00", "home": "Hoffenheim", "away": "Bayer Leverkusen", "odds": {"h": 2.62, "d": 3.83, "a": 2.18}, "hGF": 2.182, "hGA": 1.81, "aGF": 1.985, "aGA": 2.302, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "fribourg-bayern-munich-2026-10-25", "comp": "Bundesliga", "when": "2026-10-25T17:30+01:00", "home": "Fribourg", "away": "Bayern Munich", "odds": {"h": 6.1, "d": 5.6, "a": 1.32}, "hGF": 2.944, "hGA": 1.0, "aGF": 1.731, "aGA": 1.54, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "elversberg-mayence-2026-10-30", "comp": "Bundesliga", "when": "2026-10-30T21:30+01:00", "home": "Elversberg", "away": "Mayence", "odds": {"h": 3.02, "d": 3.58, "a": 1.97}, "hGF": 2.456, "hGA": 1.714, "aGF": 2.143, "aGA": 1.797, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "augsbourg-fribourg-2026-10-31", "comp": "Bundesliga", "when": "2026-10-31T16:30+01:00", "home": "Augsbourg", "away": "Fribourg", "odds": {"h": 2.83, "d": 3.6, "a": 2.05}, "hGF": 2.551, "hGA": 1.413, "aGF": 1.508, "aGA": 1.703, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "bayer-leverkusen-stuttgart-2026-10-31", "comp": "Bundesliga", "when": "2026-10-31T16:30+01:00", "home": "Bayer Leverkusen", "away": "Stuttgart", "odds": {"h": 1.7, "d": 4.0, "a": 3.53}, "hGF": 2.662, "hGA": 0.984, "aGF": 1.157, "aGA": 2.118, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "borussia-m-gladbach-paderborn-2026-10-31", "comp": "Bundesliga", "when": "2026-10-31T16:30+01:00", "home": "Borussia M'gladbach", "away": "Paderborn", "odds": {"h": 1.76, "d": 3.78, "a": 3.5}, "hGF": 2.139, "hGA": 2.334, "aGF": 0.968, "aGA": 1.968, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "schalke-04-rb-leipzig-2026-10-31", "comp": "Bundesliga", "when": "2026-10-31T16:30+01:00", "home": "Schalke 04", "away": "RB Leipzig", "odds": {"h": 3.37, "d": 3.75, "a": 1.8}, "hGF": 1.155, "hGA": 0.92, "aGF": 1.318, "aGA": 2.738, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "werder-breme-hoffenheim-2026-10-31", "comp": "Bundesliga", "when": "2026-10-31T16:30+01:00", "home": "Werder Breme", "away": "Hoffenheim", "odds": {"h": 2.78, "d": 3.65, "a": 2.05}, "hGF": 2.456, "hGA": 1.524, "aGF": 1.492, "aGA": 2.448, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "bayern-munich-borussia-dortmund-2026-10-31", "comp": "Bundesliga", "when": "2026-10-31T19:30+01:00", "home": "Bayern Munich", "away": "Borussia Dortmund", "odds": {"h": 1.29, "d": 5.5, "a": 6.1}, "hGF": 4.082, "hGA": 0.968, "aGF": 1.381, "aGA": 1.377, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "union-berlin-cologne-2026-11-01", "comp": "Bundesliga", "when": "2026-11-01T16:30+01:00", "home": "Union Berlin", "away": "Cologne", "odds": {"h": 2.35, "d": 3.4, "a": 2.5}, "hGF": 1.586, "hGA": 1.615, "aGF": 1.063, "aGA": 2.293, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "eintracht-francfort-hambourg-2026-11-01", "comp": "Bundesliga", "when": "2026-11-01T18:30+01:00", "home": "Eintracht Francfort", "away": "Hambourg", "odds": {"h": 1.56, "d": 4.1, "a": 4.25}, "hGF": 1.909, "hGA": 1.762, "aGF": 1.111, "aGA": 2.722, "lgH": 2.278, "lgA": 1.407, "gp": [6, 6]}, {"id": "fenerbahçe-slavia-prague-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T18:45+02:00", "home": "Fenerbahçe", "away": "Slavia Prague", "odds": {"h": 1.62, "d": 4.05, "a": 4.45}}, {"id": "sabah-borussia-dortmund-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T18:45+02:00", "home": "Sabah", "away": "Borussia Dortmund", "odds": {"h": 8.0, "d": 6.0, "a": 1.25}}, {"id": "as-rome-slovan-bratislava-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "AS Rome", "away": "Slovan Bratislava", "odds": {"h": 1.13, "d": 7.5, "a": 14.0}}, {"id": "fc-porto-psv-eindhoven-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "FC Porto", "away": "PSV Eindhoven", "odds": {"h": 1.54, "d": 4.35, "a": 4.75}}, {"id": "liverpool-villarreal-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "Liverpool", "away": "Villarreal", "odds": {"h": 1.43, "d": 4.8, "a": 5.5}, "hGF": 1.238, "hGA": 1.342, "aGF": 1.354, "aGA": 1.549, "lgH": 1.594, "lgA": 1.29, "gp": [7, 9], "cross": 1}, {"id": "manchester-city-aek-athènes-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "Manchester City", "away": "AEK Athènes", "odds": {"h": 1.07, "d": 10.25, "a": 17.25}}, {"id": "naples-bodø-glimt-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "Naples", "away": "Bodø/Glimt", "odds": {"h": 1.56, "d": 4.25, "a": 4.7}}, {"id": "psg-fc-barcelone-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "PSG", "away": "FC Barcelone", "odds": {"h": 2.25, "d": 4.55, "a": 2.35}, "hGF": 1.884, "hGA": 1.366, "aGF": 3.375, "aGA": 1.239, "lgH": 1.635, "lgA": 1.413, "gp": [7, 9], "cross": 1}, {"id": "stuttgart-atletico-madrid-2026-10-20", "comp": "Ligue des champions", "when": "2026-10-20T21:00+02:00", "home": "Stuttgart", "away": "Atletico Madrid", "odds": {"h": 2.97, "d": 3.78, "a": 2.05}, "hGF": 2.031, "hGA": 1.268, "aGF": 1.688, "aGA": 1.207, "lgH": 2.278, "lgA": 1.407, "gp": [6, 9], "cross": 1}, {"id": "come-manchester-united-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T18:45+02:00", "home": "Come", "away": "Manchester United", "odds": {"h": 2.2, "d": 3.58, "a": 2.82}, "hGF": 1.487, "hGA": 1.035, "aGF": 1.171, "aGA": 1.553, "lgH": 1.544, "lgA": 1.397, "gp": [7, 7], "cross": 1}, {"id": "lille-galatasaray-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T18:45+02:00", "home": "Lille", "away": "Galatasaray", "odds": {"h": 2.12, "d": 3.53, "a": 3.0}}, {"id": "aston-villa-viking-fk-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Aston Villa", "away": "Viking FK", "odds": {"h": 1.19, "d": 6.6, "a": 10.0}}, {"id": "bayern-munich-arsenal-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Bayern Munich", "away": "Arsenal", "odds": {"h": 2.0, "d": 3.73, "a": 3.1}, "hGF": 4.082, "hGA": 0.968, "aGF": 1.203, "aGA": 1.058, "lgH": 2.278, "lgA": 1.407, "gp": [6, 7], "cross": 1}, {"id": "betis-séville-feyenoord-rotterdam-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Betis Séville", "away": "Feyenoord Rotterdam", "odds": {"h": 1.46, "d": 4.7, "a": 5.25}}, {"id": "bruges-lens-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Bruges", "away": "Lens", "odds": {"h": 1.96, "d": 3.83, "a": 3.15}}, {"id": "inter-milan-shakhtar-donetsk-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Inter Milan", "away": "Shakhtar Donetsk", "odds": {"h": 1.16, "d": 7.25, "a": 11.75}}, {"id": "real-madrid-rb-leipzig-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Real Madrid", "away": "RB Leipzig", "odds": {"h": 1.21, "d": 6.75, "a": 8.5}, "hGF": 2.78, "hGA": 0.89, "aGF": 1.318, "aGA": 2.738, "lgH": 1.724, "lgA": 1.356, "gp": [9, 6], "cross": 1}, {"id": "sporting-portugal-lask-linz-2026-10-21", "comp": "Ligue des champions", "when": "2026-10-21T21:00+02:00", "home": "Sporting Portugal", "away": "LASK Linz", "odds": {"h": 1.18, "d": 6.9, "a": 10.5}}]}</script>
+<script>
+const $=id=>document.getElementById(id);
+const num=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isFinite(n)&&n>0?n:null};
+const fr=(n,d=2)=>n==null?'–':n.toFixed(d).replace('.',',');
+const pct=(n,d=0)=>n==null?'–':(n*100).toFixed(d).replace('.',',')+' %';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let DATA=JSON.parse($('data').textContent);
+let custom=store.get('vf-custom',[]);
+let ticket=store.get('vf-ticket',[]);
+let compFilter=store.get('vf-comp','Tout');
+let editing=null;
+const S={bank:$('s-bank'),days:$('s-days'),w:$('s-w'),ev:$('s-ev'),p:$('s-p'),legs:$('s-legs')};
+const saved=store.get('vf-settings2',{});for(const k in S)if(saved[k]!=null&&[...(S[k].options||[{value:saved[k]}])].some(o=>o.value==saved[k]))S[k].value=saved[k];
+
+/* ---- modèle ---- */
+const F=[1];for(let i=1;i<=15;i++)F[i]=F[i-1]*i;
+const pois=(k,l)=>Math.exp(-l)*Math.pow(l,k)/F[k];
+const hasStats=m=>m.hGF!=null&&m.aGF!=null;
+function model(m){
+  const cl=x=>Math.min(5,Math.max(0.15,x));
+  const lH=cl(m.hGF*m.aGA/m.lgH), lA=cl(m.aGF*m.hGA/m.lgA);
+  let pH=0,pD=0,pA=0,pO=0,pB=0,scores=[];
+  for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){
+    const p=pois(i,lH)*pois(j,lA);
+    if(i>j)pH+=p;else if(i===j)pD+=p;else pA+=p;
+    if(i+j>2)pO+=p; if(i>0&&j>0)pB+=p;
+    scores.push({s:i+'-'+j,p});
+  }
+  const t=pH+pD+pA; pH/=t;pD/=t;pA/=t;
+  scores.sort((a,b)=>b.p-a.p);
+  return {lH,lA,pH,pD,pA,pO,pB,top:scores.slice(0,3)};
+}
+function fairPair(a,b){if(a&&b){const s=1/a+1/b;return[(1/a)/s,(1/b)/s]}return[a?(1/a)/1.06:null,b?(1/b)/1.06:null]}
+function analyse(m){
+  const o=m.odds||{},st=hasStats(m);
+  // les matchs entre championnats différents sont moins fiables : on fait plus confiance au marché
+  const w=st?(+S.w.value)*(m.cross?0.5:1):0;
+  const md=st?model(m):null;
+  let f3=[null,null,null];
+  if(o.h&&o.d&&o.a){const s=1/o.h+1/o.d+1/o.a;f3=[1/o.h/s,1/o.d/s,1/o.a/s]}
+  const [fo,fu]=fairPair(o.o25,o.u25),[fy,fn]=fairPair(o.by,o.bn);
+  const sum=(a,b)=>a!=null&&b!=null?a+b:null;
+  const P=md||{pH:f3[0],pD:f3[1],pA:f3[2]};
+  const defs=[
+    ['h',`Victoire ${m.home}`,P.pH,f3[0]],['d','Match nul',P.pD,f3[1]],['a',`Victoire ${m.away}`,P.pA,f3[2]],
+    ['dc1x',`${m.home} ou nul`,sum(P.pH,P.pD),sum(f3[0],f3[1])],['dcx2',`Nul ou ${m.away}`,sum(P.pD,P.pA),sum(f3[1],f3[2])]
+  ];
+  if(md){
+    // sans cote buts du marché, on ramène le modèle à moitié vers la moyenne de la ligue (trop peu de matchs joués)
+    const base=model({hGF:m.lgH,aGA:m.lgH,aGF:m.lgA,hGA:m.lgA,lgH:m.lgH,lgA:m.lgA});
+    const pO=fo!=null?md.pO:(md.pO+base.pO)/2,pB=fy!=null?md.pB:(md.pB+base.pB)/2;
+    defs.push(['o25','Plus de 2,5 buts',pO,fo],['u25','Moins de 2,5 buts',1-pO,fu],['by','Les 2 équipes marquent',pB,fy],['bn','Les 2 équipes ne marquent pas',1-pB,fn]);
+  }
+  const bank=num(S.bank.value)||0,thr=+S.ev.value;
+  const legs=defs.map(([key,label,pm,pf])=>{
+    const odds=num(o[key]); const p=pm==null?null:pf!=null?w*pm+(1-w)*pf:pm;
+    const ev=odds&&p!=null?p*odds-1:null;
+    const k=odds&&ev>0?Math.min(0.05,ev/(odds-1)*0.25):0;
+    return {mid:m.id,key,label,odds,pm:st?pm:null,pf,p,ev,stake:k*bank,min:p?(1+thr)/p:null,match:m,sus:ev>0.25,ok:st&&odds&&ev>=thr&&ev<=0.25&&p>=+S.p.value};
+  });
+  return {m,md,legs,st};
+}
+function grade(l,st){
+  if(!st)return['p-neutral','pas de stats'];
+  if(!l.odds)return['p-neutral','cote mini '+fr(l.min)];
+  if(l.sus)return['p-warn','écart suspect'];
+  if(l.ok)return l.p>=0.6?['p-good','à jouer · solide']:['p-good','à jouer'];
+  if(l.ev>=+S.ev.value)return['p-warn','value · risqué'];
+  if(l.ev>-0.04)return['p-neutral','prix juste'];
+  return['p-bad','à éviter'];
+}
+
+/* ---- rendu ---- */
+const fmtDay=d=>d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+const fmtTime=d=>d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+const short=d=>d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})+' '+fmtTime(d);
+function save(){store.set('vf-custom',custom);store.set('vf-ticket',ticket);store.set('vf-comp',compFilter);const s={};for(const k in S)s[k]=S[k].value;store.set('vf-settings2',s)}
+const inTicket=(mid,key)=>ticket.some(t=>t.mid===mid&&t.key===key);
+const addBtn=l=>l.odds&&l.p!=null?`<button class="add ${inTicket(l.mid,l.key)?'on':''}" data-mid="${esc(l.mid)}" data-key="${l.key}">${inTicket(l.mid,l.key)?'✓ ticket':'+ ticket'}</button>`:'';
+const mname=m=>`<b>${esc(m.home)}</b> – <b>${esc(m.away)}</b><br><span class="muted" style="font-size:12px">${esc(m.comp)} · ${short(new Date(m.when))}</span>`;
+
+function render(){
+  const now=Date.now(),until=now+(+S.days.value)*864e5;
+  const all=DATA.matches.concat(custom).filter(m=>{const t=Date.parse(m.when);return t>now-2*36e5&&t<until}).sort((a,b)=>Date.parse(a.when)-Date.parse(b.when));
+  const an=all.map(analyse);
+  const flat=an.flatMap(a=>a.legs);
+
+  // fraîcheur des données
+  const up=DATA.updated?new Date(DATA.updated):null,age=up?(now-up)/36e5:1e9;
+  const ago=age<1?`il y a ${Math.max(1,Math.round(age*60))} min`:age<24?`il y a ${Math.floor(age)} h`:`le ${fmtDay(up)} à ${fmtTime(up)}`;
+  $('fresh').innerHTML=up?`<span class="dot ${age>2?'old':''}"></span><span>Cotes mises à jour ${ago} · ${an.length} matchs sur la période${age>2?' · <b>pas à jour : vérifie les cotes sur Betclic</b>':''}</span>`:'';
+
+  const picks=flat.filter(l=>l.ok).sort((a,b)=>b.ev-a.ev);
+  $('picks').innerHTML=picks.length?`<thead><tr><th>Match</th><th>Pari</th><th class="r">Cote</th><th class="r">Proba</th><th class="r">Value</th><th class="r">Mise</th><th></th></tr></thead><tbody>${picks.map(l=>`<tr>
+    <td>${mname(l.match)}</td><td>${esc(l.label)}${l.match.cross?' <span class="pill p-warn">coupe d\'Europe</span>':''}</td><td class="r num">${fr(l.odds)}</td><td class="r num">${pct(l.p)}</td>
+    <td class="r num ev-pos">+${pct(l.ev,1)}</td><td class="r num">${fr(l.stake)} €</td><td class="r">${addBtn(l)}</td></tr>`).join('')}</tbody>`
+    :`<tbody><tr><td class="empty">Aucun pari ne passe tes filtres sur cette période. Baisse la value mini ou la proba mini, ou allonge la période.</td></tr></tbody>`;
+
+  const best=an.map(a=>a.legs.filter(l=>l.ok&&!a.m.cross).sort((x,y)=>y.p-x.p)[0]).filter(Boolean).sort((a,b)=>b.p-a.p).slice(0,+S.legs.value);
+  if(best.length>=2){
+    const o=best.reduce((s,l)=>s*l.odds,1),p=best.reduce((s,l)=>s*l.p,1),ev=p*o-1;
+    $('combo').innerHTML=`${best.map(l=>`<div class="leg" style="grid-template-columns:1fr auto"><span><b>${esc(l.label)}</b> <span class="muted">· ${esc(l.match.home)} – ${esc(l.match.away)} · ${short(new Date(l.match.when))}</span></span><span class="num">${fr(l.odds)}</span></div>`).join('')}
+      <div class="stats"><div><span class="label">Cote totale</span><b>${fr(o)}</b></div><div><span class="label">Proba</span><b>${pct(p,1)}</b></div><div><span class="label">Value</span><b class="${ev>=0?'ev-pos':'ev-neg'}">${ev>=0?'+':''}${pct(ev,1)}</b></div><div><span class="label">Mise conseillée</span><b>${fr(Math.min(0.02,Math.max(0,ev)/(o-1)*0.25)*(num(S.bank.value)||0))} €</b></div></div>
+      <div><button class="btn small" id="b-combo">Mettre ce combiné dans mon ticket</button></div>`;
+    $('b-combo').onclick=()=>{ticket=best.map(l=>({mid:l.mid,key:l.key}));render();toast('Combiné ajouté au ticket')};
+  } else $('combo').innerHTML=`<p class="empty" style="margin:0;padding:0">Pas assez de paris value cette période pour un combiné. Allonge la période ou baisse les filtres.</p>`;
+
+  const g=an.filter(a=>a.st&&!a.m.cross).flatMap(a=>a.legs.filter(l=>['o25','u25','by','bn'].includes(l.key)&&!l.odds&&l.p>=0.62)).sort((a,b)=>b.p-a.p).slice(0,15);
+  $('goals').innerHTML=g.length?`<thead><tr><th>Match</th><th>Pari</th><th class="r">Proba modèle</th><th class="r">Cote mini</th></tr></thead><tbody>${g.map(l=>`<tr><td>${mname(l.match)}</td><td>${esc(l.label)}</td><td class="r num">${pct(l.p)}</td><td class="r num"><b>${fr(l.min)}</b></td></tr>`).join('')}</tbody>`
+    :`<tbody><tr><td class="empty">Aucun pari buts assez probable sur la période.</td></tr></tbody>`;
+
+  const comps=['Tout',...new Set(an.map(a=>a.m.comp))];
+  if(!comps.includes(compFilter))compFilter='Tout';
+  $('comps').innerHTML=comps.map(c=>`<button class="chip ${c===compFilter?'on':''}" data-comp="${esc(c)}">${esc(c)}</button>`).join('');
+  const open=new Set([...document.querySelectorAll('details.match[open]')].map(d=>d.dataset.id));
+  let lastDay='';
+  $('matches').innerHTML=an.filter(a=>compFilter==='Tout'||a.m.comp===compFilter).map(({m,md,legs,st})=>{
+    const d=new Date(m.when),day=fmtDay(d),hd=day!==lastDay?`<div class="day">${day}</div>`:'';lastDay=day;
+    const top=legs.filter(l=>l.ok).sort((a,b)=>b.ev-a.ev)[0];
+    const tag=!st?'<span class="pill p-neutral">pas de stats</span>':top?`<span class="pill p-good">${esc(top.label)}</span>`:'<span class="pill p-neutral">rien à jouer</span>';
+    return hd+`<details class="match" data-id="${esc(m.id)}" ${open.has(m.id)?'open':''}><summary><span class="t">${fmtTime(d)}</span><span class="n">${esc(m.home)} – ${esc(m.away)}<small>${esc(m.comp)}${m.custom?' · ajouté à la main':''}</small></span>${tag}</summary>
+    <div class="mbody">
+    ${md?`<div class="meta muted"><span>Scores probables : ${md.top.map(s=>`<b class="mono" style="color:var(--ink)">${s.s}</b> ${pct(s.p)}`).join(' · ')}</span>${m.gp?`<span>Stats sur ${m.gp[0]} et ${m.gp[1]} matchs de championnat</span>`:''}</div>
+    <div class="xg"><div><span class="label">Buts attendus ${esc(m.home)}</span><br><b>${fr(md.lH)}</b></div><div><span class="label">Buts attendus ${esc(m.away)}</span><br><b>${fr(md.lA)}</b></div><div><span class="label">Total</span><br><b>${fr(md.lH+md.lA)}</b></div></div>
+    <div class="bar" role="img" aria-label="1 ${pct(md.pH)}, nul ${pct(md.pD)}, 2 ${pct(md.pA)}"><span style="width:${md.pH*100}%;background:var(--accent)"></span><span style="width:${md.pD*100}%;background:var(--muted)"></span><span style="width:${md.pA*100}%;background:var(--warn)"></span></div>
+    <div class="legend"><span>1 · ${pct(md.pH)}</span><span>N · ${pct(md.pD)}</span><span>2 · ${pct(md.pA)}</span></div>`
+    :`<p class="note" style="margin:0 0 8px">Pas de stats pour une des deux équipes (championnat non couvert). Seules les probabilités du bookmaker sont affichées, sans conseil.</p>`}
+    ${m.cross?`<p class="note" style="margin:8px 0 0">Coupe d'Europe : les stats viennent de championnats différents, l'avis du modèle compte moitié moins.</p>`:''}
+    <div class="scroll"><table style="margin-top:8px"><thead><tr><th>Pari</th><th class="r">Cote Betclic</th><th class="r">Modèle</th><th class="r">Bookmaker</th><th class="r">Proba retenue</th><th class="r">Value</th><th>Verdict</th><th></th></tr></thead><tbody>
+    ${legs.map(l=>{const [c,t]=grade(l,st);return `<tr><td>${esc(l.label)}</td><td class="r num">${fr(l.odds)}</td><td class="r num">${pct(l.pm)}</td><td class="r num muted">${pct(l.pf)}</td><td class="r num"><b>${pct(l.p)}</b></td>
+      <td class="r num ${l.ev==null?'':l.ev>=0?'ev-pos':'ev-neg'}">${l.ev==null?'–':(l.ev>=0?'+':'')+pct(l.ev,1)}</td><td><span class="pill ${c}">${t}</span></td><td class="r">${st?addBtn(l):''}</td></tr>`}).join('')}
+    </tbody></table></div>
+    ${m.custom?`<div class="tools"><button class="btn ghost small" data-edit="${esc(m.id)}">Modifier</button><button class="btn ghost small" data-del="${esc(m.id)}">Supprimer</button></div>`:'<div style="height:8px"></div>'}
+    </div></details>`}).join('')||`<div class="panel empty">Aucun match sur cette période.</div>`;
+
+  ticket=ticket.filter(t=>flat.some(l=>l.mid===t.mid&&l.key===t.key&&l.odds));
+  const tl=ticket.map(t=>flat.find(l=>l.mid===t.mid&&l.key===t.key));
+  $('t-legs').innerHTML=tl.length?tl.map(l=>`<div class="leg"><b>${esc(l.label)}</b><span class="num">${fr(l.odds)}</span><button class="x" data-rm="${esc(l.mid)}" aria-label="Retirer">×</button><small>${esc(l.match.home)} – ${esc(l.match.away)} · proba ${pct(l.p)}</small></div>`).join('')
+    :`<p class="note" style="margin:0">Clique sur « + ticket » à côté d'un pari, ou prends le combiné conseillé.</p>`;
+  if(tl.length){
+    const o=tl.reduce((s,l)=>s*l.odds,1),p=tl.reduce((s,l)=>s*l.p,1),ev=p*o-1,st=num($('t-stake').value)||0;
+    $('t-odds').textContent=fr(o);$('t-prob').textContent=pct(p,1);
+    $('t-ev').textContent=(ev>=0?'+':'')+pct(ev,1);$('t-ev').className=ev>=0?'ev-pos':'ev-neg';
+    $('t-win').textContent=fr(st*o)+' €';
+  } else ['t-odds','t-prob','t-ev','t-win'].forEach(i=>{$(i).textContent='–';$(i).className=''});
+  save();
+}
+
+/* ---- interactions ---- */
+document.addEventListener('click',e=>{
+  const a=e.target.closest('.add');
+  if(a){
+    const {mid,key}=a.dataset;
+    if(inTicket(mid,key))ticket=ticket.filter(t=>!(t.mid===mid&&t.key===key));
+    else{const had=ticket.some(t=>t.mid===mid);ticket=ticket.filter(t=>t.mid!==mid);ticket.push({mid,key});if(had)toast('Une seule sélection par match : l\'ancienne a été remplacée')}
+    render();return;
+  }
+  const ch=e.target.closest('[data-comp]');if(ch){compFilter=ch.dataset.comp;render();return}
+  const rm=e.target.closest('[data-rm]');if(rm){ticket=ticket.filter(t=>t.mid!==rm.dataset.rm);render();return}
+  const ed=e.target.closest('[data-edit]');if(ed){openForm(custom.find(m=>m.id===ed.dataset.edit));return}
+  const dl=e.target.closest('[data-del]');if(dl){
+    if(dl.dataset.confirm){custom=custom.filter(m=>m.id!==dl.dataset.del);render();toast('Match supprimé')}
+    else{dl.dataset.confirm=1;dl.textContent='Confirmer la suppression';setTimeout(()=>{if(dl.isConnected){delete dl.dataset.confirm;dl.textContent='Supprimer'}},3000)}
+  }
+});
+Object.values(S).forEach(el=>el.addEventListener('input',render));
+$('t-stake').addEventListener('input',render);
+$('t-clear').onclick=()=>{ticket=[];render()};
+
+const FIELDS=['comp','when','home','away','hGF','hGA','aGF','aGA','lgH','lgA'],ODDS=['h','d','a','o25','u25','by','bn'];
+function openForm(m){
+  editing=m?m.id:null;$('form').reset();
+  if(m){FIELDS.forEach(f=>$('f-'+f).value=m[f]??'');ODDS.forEach(f=>$('f-'+f).value=m.odds?.[f]??'')}
+  $('form-title').textContent=m?`Modifier ${m.home} – ${m.away}`:'Ajouter un match à la main';
+  $('f-submit').textContent=m?'Enregistrer':'Ajouter le match';
+  $('form-wrap').open=true;$('form-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeForm(){editing=null;$('form').reset();$('form-wrap').open=false;$('form-title').textContent='Ajouter un match à la main';$('f-submit').textContent='Ajouter le match'}
+$('f-cancel').onclick=closeForm;
+$('form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const m={id:editing||'c'+Date.now(),custom:1,comp:$('f-comp').value.trim()||'Autre',when:$('f-when').value,home:$('f-home').value.trim(),away:$('f-away').value.trim(),odds:{}};
+  for(const f of ['hGF','hGA','aGF','aGA','lgH','lgA']){const v=num($('f-'+f).value);if(v==null){toast('Remplis toutes les stats avec des nombres (ex : 1,4)');$('f-'+f).focus();return}m[f]=v}
+  ODDS.forEach(f=>{const v=num($('f-'+f).value);if(v&&v>1)m.odds[f]=v});
+  if(editing)custom=custom.map(x=>x.id===editing?m:x);else custom.push(m);
+  toast(editing?'Match mis à jour':'Match ajouté');closeForm();render();
+});
+let tt;function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600)}
+render();
+// recharge les dernières cotes à chaque ouverture (version hébergée ; ignoré si data.json est absent)
+async function refresh(){
+  try{
+    const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d&&Array.isArray(d.matches)&&d.matches.length&&d.updated!==DATA.updated){DATA=d;render()}
+  }catch(e){}
+}
+refresh();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+setInterval(()=>{if(document.visibilityState==='visible')refresh()},5*60*1000);
+</script>
