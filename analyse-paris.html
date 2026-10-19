@@ -125,7 +125,7 @@ legend{font-size:12px;text-transform:uppercase;letter-spacing:.07em;font-weight:
     </div>
     <div class="settings">
       <label class="field"><span class="label">Bankroll (€)</span><input id="s-bank" inputmode="decimal" value="100"></label>
-      <label class="field"><span class="label">Période</span><select id="s-days"><option value="2">48 heures</option><option value="4">4 jours</option><option value="7" selected>7 jours</option><option value="15">15 jours</option></select></label>
+      <label class="field"><span class="label">Période</span><select id="s-days"><option value="today" selected>Aujourd'hui</option><option value="tomorrow">Demain</option><option value="2">48 heures</option><option value="7">7 jours</option><option value="15">15 jours</option></select></label>
       <label class="field"><span class="label">Prudence</span><select id="s-w"><option value="0.5">Audacieux</option><option value="0.35" selected>Normal</option><option value="0.2">Prudent</option></select></label>
       <label class="field"><span class="label">Value mini</span><select id="s-ev"><option value="0.02">2 %</option><option value="0.04" selected>4 %</option><option value="0.07">7 %</option><option value="0.1">10 %</option></select></label>
       <label class="field"><span class="label">Proba mini</span><select id="s-p"><option value="0.3">30 %</option><option value="0.4" selected>40 %</option><option value="0.5">50 %</option><option value="0.6">60 %</option></select></label>
@@ -136,7 +136,7 @@ legend{font-size:12px;text-transform:uppercase;letter-spacing:.07em;font-weight:
   <div class="layout">
     <div class="col">
       <section>
-        <div class="head"><h2>Les paris à jouer</h2><span class="note">Cote Betclic plus haute que la vraie probabilité. Mise : ¼ de Kelly, 5 % de la bankroll au plus.</span></div>
+        <div class="head"><h2 id="picks-title">Les paris à jouer</h2><span class="note">Cote Betclic plus haute que la vraie probabilité. Mise : ¼ de Kelly, 5 % de la bankroll au plus.</span></div>
         <div class="panel scroll"><table id="picks"></table></div>
       </section>
 
@@ -231,7 +231,7 @@ let ticket=store.get('vf-ticket',[]);
 let compFilter=store.get('vf-comp','Tout');
 let editing=null;
 const S={bank:$('s-bank'),days:$('s-days'),w:$('s-w'),ev:$('s-ev'),p:$('s-p'),legs:$('s-legs')};
-const saved=store.get('vf-settings2',{});for(const k in S)if(saved[k]!=null&&[...(S[k].options||[{value:saved[k]}])].some(o=>o.value==saved[k]))S[k].value=saved[k];
+const saved=store.get('vf-settings3',{});for(const k in S)if(saved[k]!=null&&[...(S[k].options||[{value:saved[k]}])].some(o=>o.value==saved[k]))S[k].value=saved[k];
 
 /* ---- modèle ---- */
 const F=[1];for(let i=1;i<=15;i++)F[i]=F[i-1]*i;
@@ -295,14 +295,19 @@ function grade(l,st){
 const fmtDay=d=>d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
 const fmtTime=d=>d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 const short=d=>d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})+' '+fmtTime(d);
-function save(){store.set('vf-custom',custom);store.set('vf-ticket',ticket);store.set('vf-comp',compFilter);const s={};for(const k in S)s[k]=S[k].value;store.set('vf-settings2',s)}
+function save(){store.set('vf-custom',custom);store.set('vf-ticket',ticket);store.set('vf-comp',compFilter);const s={};for(const k in S)s[k]=S[k].value;store.set('vf-settings3',s)}
 const inTicket=(mid,key)=>ticket.some(t=>t.mid===mid&&t.key===key);
 const addBtn=l=>l.odds&&l.p!=null?`<button class="add ${inTicket(l.mid,l.key)?'on':''}" data-mid="${esc(l.mid)}" data-key="${l.key}">${inTicket(l.mid,l.key)?'✓ ticket':'+ ticket'}</button>`:'';
 const mname=m=>`<b>${esc(m.home)}</b> – <b>${esc(m.away)}</b><br><span class="muted" style="font-size:12px">${esc(m.comp)} · ${short(new Date(m.when))}</span>`;
 
 function render(){
-  const now=Date.now(),until=now+(+S.days.value)*864e5;
-  const all=DATA.matches.concat(custom).filter(m=>{const t=Date.parse(m.when);return t>now-2*36e5&&t<until}).sort((a,b)=>Date.parse(a.when)-Date.parse(b.when));
+  const now=Date.now(),v=S.days.value,d0=new Date();d0.setHours(0,0,0,0);
+  let from=now-2*36e5,until=now+(+v)*864e5;
+  if(v==='today')until=d0.getTime()+864e5;
+  if(v==='tomorrow'){from=d0.getTime()+864e5;until=d0.getTime()+2*864e5}
+  const when={today:"aujourd'hui",tomorrow:'demain'}[v]||'';
+  $('picks-title').textContent='Les paris à jouer'+(when?' '+when:'');
+  const all=DATA.matches.concat(custom).filter(m=>{const t=Date.parse(m.when);return t>from&&t<until}).sort((a,b)=>Date.parse(a.when)-Date.parse(b.when));
   const an=all.map(analyse);
   const flat=an.flatMap(a=>a.legs);
 
@@ -315,7 +320,7 @@ function render(){
   $('picks').innerHTML=picks.length?`<thead><tr><th>Match</th><th>Pari</th><th class="r">Cote</th><th class="r">Proba</th><th class="r">Value</th><th class="r">Mise</th><th></th></tr></thead><tbody>${picks.map(l=>`<tr>
     <td>${mname(l.match)}</td><td>${esc(l.label)}${l.match.cross?' <span class="pill p-warn">coupe d\'Europe</span>':''}</td><td class="r num">${fr(l.odds)}</td><td class="r num">${pct(l.p)}</td>
     <td class="r num ev-pos">+${pct(l.ev,1)}</td><td class="r num">${fr(l.stake)} €</td><td class="r">${addBtn(l)}</td></tr>`).join('')}</tbody>`
-    :`<tbody><tr><td class="empty">Aucun pari ne passe tes filtres sur cette période. Baisse la value mini ou la proba mini, ou allonge la période.</td></tr></tbody>`;
+    :`<tbody><tr><td class="empty">${v==='today'?"Aucun bon pari aujourd'hui. Ne force pas : regarde demain avec la période « Demain ».":'Aucun pari ne passe tes filtres sur cette période. Baisse la value mini ou la proba mini, ou allonge la période.'}</td></tr></tbody>`;
 
   const best=an.map(a=>a.legs.filter(l=>l.ok&&!a.m.cross).sort((x,y)=>y.p-x.p)[0]).filter(Boolean).sort((a,b)=>b.p-a.p).slice(0,+S.legs.value);
   if(best.length>=2){
@@ -324,7 +329,7 @@ function render(){
       <div class="stats"><div><span class="label">Cote totale</span><b>${fr(o)}</b></div><div><span class="label">Proba</span><b>${pct(p,1)}</b></div><div><span class="label">Value</span><b class="${ev>=0?'ev-pos':'ev-neg'}">${ev>=0?'+':''}${pct(ev,1)}</b></div><div><span class="label">Mise conseillée</span><b>${fr(Math.min(0.02,Math.max(0,ev)/(o-1)*0.25)*(num(S.bank.value)||0))} €</b></div></div>
       <div><button class="btn small" id="b-combo">Mettre ce combiné dans mon ticket</button></div>`;
     $('b-combo').onclick=()=>{ticket=best.map(l=>({mid:l.mid,key:l.key}));render();toast('Combiné ajouté au ticket')};
-  } else $('combo').innerHTML=`<p class="empty" style="margin:0;padding:0">Pas assez de paris value cette période pour un combiné. Allonge la période ou baisse les filtres.</p>`;
+  } else $('combo').innerHTML=`<p class="empty" style="margin:0;padding:0">${when?`Pas assez de bons paris ${when} pour un combiné. Joue plutôt un pari simple, ou rien.`:'Pas assez de paris value cette période pour un combiné. Allonge la période ou baisse les filtres.'}</p>`;
 
   const g=an.filter(a=>a.st&&!a.m.cross).flatMap(a=>a.legs.filter(l=>['o25','u25','by','bn'].includes(l.key)&&!l.odds&&l.p>=0.62)).sort((a,b)=>b.p-a.p).slice(0,15);
   $('goals').innerHTML=g.length?`<thead><tr><th>Match</th><th>Pari</th><th class="r">Proba modèle</th><th class="r">Cote mini</th></tr></thead><tbody>${g.map(l=>`<tr><td>${mname(l.match)}</td><td>${esc(l.label)}</td><td class="r num">${pct(l.p)}</td><td class="r num"><b>${fr(l.min)}</b></td></tr>`).join('')}</tbody>`
@@ -352,7 +357,7 @@ function render(){
       <td class="r num ${l.ev==null?'':l.ev>=0?'ev-pos':'ev-neg'}">${l.ev==null?'–':(l.ev>=0?'+':'')+pct(l.ev,1)}</td><td><span class="pill ${c}">${t}</span></td><td class="r">${st?addBtn(l):''}</td></tr>`}).join('')}
     </tbody></table></div>
     ${m.custom?`<div class="tools"><button class="btn ghost small" data-edit="${esc(m.id)}">Modifier</button><button class="btn ghost small" data-del="${esc(m.id)}">Supprimer</button></div>`:'<div style="height:8px"></div>'}
-    </div></details>`}).join('')||`<div class="panel empty">Aucun match sur cette période.</div>`;
+    </div></details>`}).join('')||`<div class="panel empty">${v==='today'?"Plus de match aujourd'hui dans ces championnats. Choisis « Demain ».":'Aucun match sur cette période.'}</div>`;
 
   ticket=ticket.filter(t=>flat.some(l=>l.mid===t.mid&&l.key===t.key&&l.odds));
   const tl=ticket.map(t=>flat.find(l=>l.mid===t.mid&&l.key===t.key));
