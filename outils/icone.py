@@ -1,7 +1,7 @@
-# Génère les icônes PNG de l'app (sans dépendance) : ballon blanc sur fond vert
+# Génère les icônes PNG de l'app (sans dépendance) : ballon blanc sur dégradé orange
 import zlib,struct,math,sys
 def png(n,path):
-    S=3;bg=(15,107,69);rows=[]
+    S=3;bg=None;rows=[]
     pent=[(math.cos(math.radians(-90+72*k))*0.13,math.sin(math.radians(-90+72*k))*0.13) for k in range(5)]
     def inpoly(x,y,P):
         c=False
@@ -16,12 +16,12 @@ def png(n,path):
             for sj in range(S):
                 for si in range(S):
                     x=(i+(si+.5)/S)/n-.5;y=(j+(sj+.5)/S)/n-.5;r=math.hypot(x,y)
-                    col=bg
+                    col=(255,int(106+(179-106)*(x+y+1)/2),int(43+(35-43)*(x+y+1)/2))
                     if r<0.33: col=(255,255,255)
-                    if inpoly(x,y,pent): col=(20,32,26)
+                    if inpoly(x,y,pent): col=(6,8,13)
                     for a in range(5):
                         ang=math.radians(-90+72*a);px,py=math.cos(ang)*0.29,math.sin(ang)*0.29
-                        if r<0.33 and math.hypot(x-px,y-py)<0.07: col=(20,32,26)
+                        if r<0.33 and math.hypot(x-px,y-py)<0.07: col=(6,8,13)
                     acc=[acc[k]+col[k] for k in range(3)]
             row+=bytes(v//(S*S) for v in acc)
         rows.append(bytes(row))
