@@ -369,13 +369,45 @@ details.add summary{padding:15px;font-weight:700;cursor:pointer}
 .nav{position:fixed;z-index:5;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 10px);
   max-width:536px;margin:0 auto;background:rgba(18,22,32,.72);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
   border:1px solid var(--stroke-2);border-radius:26px;box-shadow:0 18px 40px -12px rgba(0,0,0,.7)}
-.nav>div{display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h);padding:6px}
+.nav>div{display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-h);padding:6px}
 .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--dim);position:relative;border-radius:20px}
 .tab svg{width:21px;height:21px}
 .tab.on{color:var(--ink);background:var(--glass-3)}
 .tab.on svg{color:var(--flood)}
 .tab .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--grad);color:var(--flood-ink);font-size:11px;font-weight:800;display:grid;place-items:center;box-shadow:0 4px 10px -2px rgba(255,106,43,.7)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 14px);z-index:6;background:rgba(244,246,251,.94);color:var(--bg);padding:11px 18px;border-radius:99px;font-size:14px;font-weight:700;max-width:calc(100% - 32px);text-align:center;box-shadow:0 12px 30px -10px rgba(0,0,0,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+/* coach IA */
+.ia-thread{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:100%;border-radius:20px;padding:12px 14px;font-size:14px;line-height:1.55}
+.msg p{margin:0 0 6px}.msg p:last-child{margin:0}.msg ul{margin:4px 0 6px;padding-left:18px}.msg li{margin:3px 0}
+.msg.me{align-self:flex-end;max-width:85%;background:var(--glass-3);border:1px solid var(--stroke-2);border-bottom-right-radius:6px}
+.msg.ai{align-self:stretch;background:var(--glass);border:1px solid var(--stroke);border-bottom-left-radius:6px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.msg.ai:has(>.iv){padding:0;background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+.ia-wait{color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.ia-wait{animation:blink 1.2s ease-in-out infinite}@keyframes blink{50%{opacity:.45}}}
+.ia-ims{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}.ia-ims img{height:90px;border-radius:10px;border:1px solid var(--stroke)}
+.iv{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:var(--r);background:var(--glass-2);border:1px solid var(--stroke-2)}
+.iv.go{background:linear-gradient(140deg,rgba(56,230,166,.16),rgba(56,230,166,.04));border-color:rgba(56,230,166,.45)}
+.iv.mid{background:linear-gradient(140deg,rgba(255,179,35,.16),rgba(255,179,35,.04));border-color:rgba(255,179,35,.4)}
+.iv.no{background:linear-gradient(140deg,rgba(255,90,116,.16),rgba(255,90,116,.04));border-color:rgba(255,90,116,.4)}
+.iv-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.iv-h b{font-family:var(--f-display);font-size:20px;font-weight:800;letter-spacing:-.02em}
+.iv>p{margin:0;font-size:14px}
+.iv-l{display:flex;justify-content:space-between;gap:10px;padding-top:10px;border-top:1px solid var(--stroke);font-size:14px}
+.iv-l>div:first-child{min-width:0}.iv-l small{display:block;color:var(--muted);font-size:12px;font-weight:500}
+.iv-o{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none}.iv-o .uv.w{color:var(--warn)}
+.iv-t{display:flex;flex-direction:column;gap:6px;font-size:13px;padding:10px 12px;border-radius:14px;background:var(--glass)}
+.ia-box{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:var(--r);background:var(--glass);border:1px solid var(--stroke-2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.ia-box.drop{border-color:var(--flood-2);background:var(--warn-bg)}
+.ia-box textarea{width:100%;resize:vertical;min-height:52px;padding:11px 12px;border-radius:14px;border:1px solid var(--stroke);background:var(--glass-2);color:var(--ink);font:inherit;font-size:15px}
+.ia-box textarea::placeholder{color:var(--dim)}
+.ia-acts{display:flex;gap:8px;align-items:center}
+.ia-pic{cursor:pointer;display:inline-flex;align-items:center;padding:10px 12px}
+.ia-acts .addsm{padding:10px 12px}
+.ia-send{width:auto;flex:1;padding:11px}.ia-send:disabled{opacity:.5}
+.ia-thumbs{display:flex;gap:8px;flex-wrap:wrap}.ia-thumbs:empty{display:none}
+.ia-th{position:relative}.ia-th img{height:72px;border-radius:10px;border:1px solid var(--stroke-2);display:block}
+.ia-th button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:14px;line-height:1}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (min-width:600px){.app{padding-top:16px}}
 </style>
@@ -399,6 +431,21 @@ details.add summary{padding:15px;font-weight:700;cursor:pointer}
       <button class="back" data-tab="pronos">← Retour aux pronos</button>
       <input id="q" type="hidden">
       <div class="view" id="m-list" style="margin:0"></div>
+    </section>
+    <section class="view" id="v-ia" hidden>
+      <div class="sec-h"><h2>Coach IA</h2><span id="ia-fresh"></span></div>
+      <p class="note" style="margin:-6px 0 0">Envoie une capture de ton combiné (Betclic, Winamax, Unibet…) ou écris-le. L'IA le lit, le compare aux cotes et aux stats de chaque match, et te dit s'il est jouable. Tu peux ensuite lui poser tes questions.</p>
+      <div id="ia-key"></div>
+      <div class="ia-thread" id="ia-thread"></div>
+      <div class="ia-box" id="ia-box">
+        <div class="ia-thumbs" id="ia-thumbs"></div>
+        <textarea id="ia-q" rows="2" placeholder="Ex : PSG gagne 1,45 + Lens-Lille plus de 2,5 buts 1,90 + Mbappé buteur 1,70" aria-label="Ton combiné ou ta question"></textarea>
+        <div class="ia-acts">
+          <label class="addsm ia-pic"><input type="file" id="ia-file" accept="image/*" multiple hidden>📷 Capture</label>
+          <button class="addsm" id="ia-ticket" hidden>Mon ticket</button>
+          <button class="cta ia-send" id="ia-send">Analyser</button>
+        </div>
+      </div>
     </section>
     <section class="view" id="v-ticket" hidden></section>
     <section class="view" id="v-paris" hidden></section>
@@ -448,6 +495,7 @@ details.add summary{padding:15px;font-weight:700;cursor:pointer}
 
 <nav class="nav" aria-label="Sections"><div>
   <button class="tab on" data-tab="pronos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Pronos</button>
+  <button class="tab" data-tab="ia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 8l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" stroke-width="1.6"/></svg>IA</button>
   <button class="tab" data-tab="ticket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v4a3 3 0 0 0 0 6v4H4v-4a3 3 0 0 0 0-6z"/><path d="M14 5v14" stroke-dasharray="2 2.5"/></svg>Ticket<span class="badge" id="badge" hidden></span></button>
   <button class="tab" data-tab="paris"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-4 3 3 5-6"/></svg>Mes paris</button>
   <button class="tab" data-tab="reglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Réglages</button>
@@ -1091,12 +1139,276 @@ function renderParis(){
   $('v-paris').innerHTML=h;
 }
 function showTab(){
-  if(!['pronos','matchs','ticket','paris','reglages'].includes(st.tab))st.tab='pronos';
-  for(const t of ['pronos','matchs','ticket','paris','reglages'])$('v-'+t).hidden=st.tab!==t;
+  if(!['pronos','matchs','ia','ticket','paris','reglages'].includes(st.tab))st.tab='pronos';
+  for(const t of ['pronos','matchs','ia','ticket','paris','reglages'])$('v-'+t).hidden=st.tab!==t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===st.tab));
 }
 function save(){store.set('vf-bets',bets);store.set('vf-fav',[...FAV]);store.set('vf-custom',custom);store.set('vf-ticket',ticket);store.set('vf-ui',st);const s={};for(const k in S)s[k]=S[k].value;store.set('vf-settings4',s)}
-function renderAll(){compute();renderTicket();renderTop();renderDays();renderPronos();renderMatchs();renderParis();showTab();save()}
+function renderAll(){compute();renderTicket();renderTop();renderDays();renderPronos();renderMatchs();renderParis();renderIA();showTab();save()}
+
+/* ---- Coach IA : lit la capture d'un combiné, le compare aux cotes et au modèle, dit s'il est jouable ---- */
+// Claude lit le ticket (capture ou texte) et le traduit en paris de l'appli ; les chiffres viennent du modèle de l'appli.
+const IA_MODEL='claude-opus-5-5',IA_SDK='https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.131.0/+esm';
+let IAKEY=store.get('vf-ia-key',''),iaImgs=[],iaHist=[],iaLast=null,iaBusy=false,SDK=null;
+async function claude(){
+  if(!SDK){const mod=await import(IA_SDK);SDK=mod.default||mod.Anthropic}
+  return new SDK({apiKey:IAKEY,dangerouslyAllowBrowser:true,maxRetries:2});
+}
+// le serveur relance sur un autre modèle si la demande est refusée par erreur
+const iaCall=(cl,p)=>cl.beta.messages.create({...p,model:IA_MODEL,betas:['server-side-fallback-2026-07-01'],fallbacks:'default'});
+function iaErr(e){
+  if(SDK&&e instanceof SDK.AuthenticationError)return 'Clé API refusée : vérifie-la dans « Clé API Claude ».';
+  if(SDK&&e instanceof SDK.PermissionDeniedError)return 'Cette clé n\'a pas accès au modèle.';
+  if(SDK&&e instanceof SDK.RateLimitError)return 'Trop de demandes d\'un coup : réessaie dans une minute.';
+  if(SDK&&e instanceof SDK.APIConnectionError)return 'Pas de connexion à l\'IA. Vérifie ton internet.';
+  if(SDK&&e instanceof SDK.APIError&&e.status===400)return /credit|balance/i.test(e.message)?'Plus de crédit sur ton compte Claude (console.anthropic.com → Billing).':'Demande refusée : '+e.message;
+  if(SDK&&e instanceof SDK.APIError)return 'L\'IA est indisponible pour le moment ('+(e.status||'?')+'). Réessaie.';
+  return !SDK?'Impossible de charger l\'IA. Vérifie ta connexion.':'Erreur : '+(e&&e.message||e);
+}
+
+/* captures : réduites à 1568 px max (taille idéale pour la lecture par Claude) */
+function shrink(file){return new Promise((ok,ko)=>{
+  const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{const s=Math.min(1,1568/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    const d=c.toDataURL('image/jpeg',.88);URL.revokeObjectURL(u);ok({data:d.split(',')[1],url:d})};
+  im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error('image illisible'))};im.src=u})}
+async function iaAddFiles(files){
+  for(const f of [...files].filter(f=>/^image\//.test(f.type)).slice(0,6-iaImgs.length)){try{iaImgs.push(await shrink(f))}catch(e){toast('Image illisible')}}
+  iaThumbs();
+}
+function iaThumbs(){
+  $('ia-thumbs').innerHTML=iaImgs.map((x,i)=>`<span class="ia-th"><img src="${x.url}" alt="Capture ${i+1}"><button data-iarm="${i}" aria-label="Retirer la capture">×</button></span>`).join('');
+  $('ia-send').textContent=iaImgs.length||!iaLast?'Analyser':'Envoyer';
+}
+
+/* 1) lecture du ticket par Claude */
+const IA_KEYS=`h = victoire équipe à domicile · d = match nul · a = victoire équipe à l'extérieur
+dc1x / dcx2 / dc12 = double chance 1N / N2 / 12 · dnb1 / dnb2 = remboursé si match nul (domicile / extérieur)
+o05 o15 o25 o35 o45 = plus de 0,5 / 1,5 / 2,5 / 3,5 / 4,5 buts · u05 u15 u25 u35 u45 = moins de …
+by = les deux équipes marquent : oui · bn = non · byo25 = les deux marquent ET plus de 2,5 buts · bno25 = pas les deux ET plus de 2,5 buts
+tho05 tho15 tho25 = l'équipe à domicile marque plus de 0,5 / 1,5 / 2,5 buts · tao05 tao15 tao25 = pareil pour l'extérieur
+hc1 = domicile gagne de 2 buts ou plus (handicap −1,5, ou handicap européen −1 « victoire ») · ac1 = pareil pour l'extérieur
+hc2 = l'extérieur ne perd pas de 2 buts ou plus (+1,5) · ac2 = le domicile ne perd pas de 2 buts ou plus (+1,5)
+wn1 / wn2 = domicile / extérieur gagne sans encaisser · cs1 / cs2 = domicile / extérieur n'encaisse pas de but
+sc2-1 = score exact 2-1 (buts domicile - buts extérieur de la liste)
+ht0 / ht1 / ht2 = résultat à la mi-temps 1 / N / 2 · hf00 … hf22 = mi-temps/fin, 0 = domicile, 1 = nul, 2 = extérieur (hf00 = 1/1, hf12 = N/2)
+co75 … co115 = plus de 7,5 … 11,5 corners · cu75 … cu115 = moins · yo25 … yo55 = plus de 2,5 … 5,5 cartons · yu25 … yu55 = moins
+bt = buteur à tout moment (mets son nom dans player)
+other = tout autre pari (mi-temps avec buts, joueur passeur, tirs, tennis, basket…)`;
+const IA_READ=`Tu lis des tickets de paris sportifs (captures d'écran d'applis comme Betclic, Winamax, Unibet, PMU, Parions Sport, ou texte tapé) et tu les traduis en données.
+Pour chaque sélection du ticket :
+- match_id : l'id EXACT du match dans la liste fournie. Les noms varient selon les bookmakers (PSG = Paris SG, OM = Marseille, Man City = Manchester City, Inter = Inter Milan…) : rapproche intelligemment, en t'aidant de la date et de la compétition. Si le match n'est pas dans la liste, mets "".
+- key : le code du pari selon le barème ci-dessous, orienté comme dans la liste (domicile = équipe de gauche de la liste, même si le ticket les affiche dans l'autre sens).
+- odds : la cote de la sélection telle qu'écrite sur le ticket (nombre décimal), null si illisible.
+- teams_seen / selection_seen : ce qui est écrit sur le ticket, tel quel.
+Mets aussi la cote totale et la mise si elles sont visibles (sinon null), et dans notes tout ce qui manque ou paraît bizarre (cote boostée, ticket déjà joué, sélection illisible), en une phrase courte, ou "".
+N'invente jamais une sélection qui n'est pas sur le ticket.
+
+BARÈME DES PARIS :
+${IA_KEYS}`;
+const nul=t=>({anyOf:[{type:t},{type:'null'}]});
+const IA_SCHEMA={type:'object',additionalProperties:false,required:['legs','total_odds','stake','notes'],properties:{
+  legs:{type:'array',items:{type:'object',additionalProperties:false,required:['match_id','teams_seen','selection_seen','key','player','odds'],properties:{
+    match_id:{type:'string'},teams_seen:{type:'string'},selection_seen:{type:'string'},key:{type:'string'},player:nul('string'),odds:nul('number')}}},
+  total_odds:nul('number'),stake:nul('number'),notes:{type:'string'}}};
+function iaMatchList(){
+  return allMatches().filter(m=>Date.parse(m.when)>Date.now()-3*36e5).sort((a,b)=>Date.parse(a.when)-Date.parse(b.when))
+    .map(m=>`${m.id} | ${m.comp} | ${new Date(m.when).toLocaleString('fr-FR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} | ${m.home} - ${m.away}`).join('\n');
+}
+async function iaRead(cl,imgs,text){
+  const content=[...imgs.map(x=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:x.data}})),
+    {type:'text',text:`Nous sommes le ${new Date().toLocaleString('fr-FR',{dateStyle:'full',timeStyle:'short'})}.\n${text?'Message du parieur : '+text+'\n':''}Lis ce ticket et traduis chaque sélection.`}];
+  const r=await iaCall(cl,{max_tokens:16000,output_config:{effort:'medium',format:{type:'json_schema',schema:IA_SCHEMA}},
+    system:[{type:'text',text:IA_READ},{type:'text',text:'MATCHS DISPONIBLES (id | compétition | date | domicile - extérieur) :\n'+iaMatchList(),cache_control:{type:'ephemeral'}}],
+    messages:[{role:'user',content}]});
+  if(r.stop_reason==='refusal')throw new Error('l\'IA a refusé de lire cette image');
+  if(r.stop_reason==='max_tokens')throw new Error('ticket trop long à lire');
+  const t=r.content.find(b=>b.type==='text');if(!t)throw new Error('réponse vide');
+  return JSON.parse(t.text);
+}
+
+/* 2) calcul : chaque sélection passée au modèle de l'appli */
+function iaLeg(x){
+  const m=allMatches().find(y=>y.id===x.match_id);
+  const o={...x,m,label:x.selection_seen||x.key,p:null,pr:0,cur:null,odds:x.odds||null,ev:null,known:false};
+  if(!m){o.why='Match pas dans les données de l\'appli : non vérifié';return o}
+  const a=analyse(m);let row=null;
+  if(x.key==='bt'&&x.player){const s=(scorers(a)||[]).find(r=>sameP(r.n,x.player));if(s&&s.p>0)row=['bt-'+nkey(s.n).replace(/ /g,'_'),`${s.n} marque`,s.p,0]}
+  else{const L=a.legs.find(l=>l.key===x.key&&l.p!=null);if(L)row=[L.key,L.label,L.p,0,L];else for(const g of markets(a))for(const r of g.r)if(r[0]===x.key)row=r}
+  o.started=Date.parse(m.when)<Date.now();
+  if(!row){o.why=a.sts?'Pari que le modèle ne calcule pas : non vérifié':'Pas de stats sur ce match : non vérifié';return o}
+  o.key=row[0];o.label=row[1];o.p=row[2];o.pr=row[3]||0;o.known=true;o.md=a.md;
+  const L=row[4],u=UO[m.id+'|'+o.key];
+  o.cur=u?{o:u,est:false}:L&&L.odds?{o:L.odds,est:L.est}:null;
+  if(!o.odds&&o.cur){o.odds=o.cur.o;o.fromApp=true}
+  if(o.odds)o.ev=o.p*o.odds+o.pr-1;
+  o.fair=(1-o.pr)/Math.max(o.p,1e-6);
+  return o;
+}
+// deux paris sur le même match ne sont pas indépendants : on mesure la corrélation sur la grille des scores du modèle
+const scoreable=k=>k in WIN||WINX(k,0,0)!==null;
+function iaCorr(g){
+  if(g.length<2||!g[0].md||!g.every(l=>scoreable(l.key)))return 1;
+  const M=g[0].md.M,win=(k,i,j)=>k in WIN?WIN[k](i,j):WINX(k,i,j);let joint=0;const sep=g.map(()=>0);
+  for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){let all=true;g.forEach((l,n)=>{if(win(l.key,i,j))sep[n]+=M[i][j];else all=false});if(all)joint+=M[i][j]}
+  const prod=sep.reduce((s,v)=>s*v,1);return prod>0?joint/prod:1;
+}
+// corrélation des paris d'un même match, multipliée sur tous les matchs
+function iaCorrAll(legs){const byM={};legs.forEach(l=>{if(l.m&&l.known)(byM[l.m.id]=byM[l.m.id]||[]).push(l)});
+  let c=1;const same=[];for(const g of Object.values(byM)){const x=iaCorr(g);c*=x;if(g.length>1)same.push({g,c:x})}return {c,same}}
+const iaEV=legs=>legs.every(l=>l.p!=null&&l.odds)?legs.reduce((s,l)=>s*(l.p*l.odds+l.pr),1)*iaCorrAll(legs).c-1:null;
+function iaEval(read){
+  const legs=read.legs.map(iaLeg);
+  for(const l of legs)if(!l.known&&l.odds){l.p=1/(l.odds*1.06);l.ev=l.p*l.odds-1}  // non vérifié : proba du bookmaker moins sa marge
+  const {c:corr,same}=iaCorrAll(legs);
+  const ok=legs.every(l=>l.p!=null&&l.odds);
+  const prod=legs.reduce((s,l)=>s*(l.odds||1),1),O=read.total_odds&&read.total_odds>1?read.total_odds:prod;
+  const P=ok?legs.reduce((s,l)=>s*l.p,1)*corr:null;
+  // espérance de gain par euro : chaque sélection rapporte p×cote (+ remboursement si « remboursé si nul »)
+  const E=ok?legs.reduce((s,l)=>s*(l.p*l.odds+l.pr),1)*corr*(O/prod):null,ev=E!=null?E-1:null;
+  const bank=num(S.bank.value)||0;
+  let v;
+  if(!legs.length)v=['no','Aucune sélection lue','Je n\'ai trouvé aucun pari sur ce ticket.'];
+  else if(ev==null)v=['mid','Impossible à juger','Il manque des cotes : ajoute-les dans ton message (ex : « PSG 1,45 »).'];
+  else if(ev>=0.02)v=['go','✅ Jouable','Ton combiné paie plus que ce qu\'il vaut : c\'est un bon pari sur la durée.'];
+  else if(ev>=-0.1)v=['mid','🟠 Jouable pour le plaisir','Léger désavantage, comme la plupart des combinés : ok pour une petite mise.'];
+  else v=['no','❌ Pas jouable','La cote est trop basse pour les risques pris : sur la durée, ce combiné fait perdre.'];
+  const weak=legs.filter(l=>l.ev!=null).sort((a,b)=>a.ev-b.ev)[0];
+  const tips=[];
+  if(legs.some(l=>l.started))tips.push('⏱️ Un des matchs a déjà commencé : la cote du ticket n\'est peut-être plus valable.');
+  if(weak&&weak.ev<-0.05&&legs.length>1){const E2=iaEV(legs.filter(l=>l!==weak));
+    tips.push(`✂️ Le maillon faible : <b>${esc(weak.label)}</b> (value ${pct(weak.ev)}).${E2!=null&&ev!=null&&E2>ev?` Sans lui, ton combiné passe à ${E2>=0?'+':''}${pct(E2)} de value.`:''}`)}
+  for(const l of legs.filter(l=>l.m&&l.known&&l.ev!=null&&l.ev<-0.03)){
+    const alt=analyse(l.m).legs.filter(z=>z.ok&&z.key!==l.key).sort((a,b)=>b.ev-a.ev)[0];
+    if(alt)tips.push(`🔁 Sur ${esc(l.m.home)} – ${esc(l.m.away)}, mieux vaut <b>${esc(alt.label)}</b> à ${oc(alt)} (${pct(alt.p)}, value +${pct(alt.ev)}).`)}
+  for(const l of legs.filter(l=>l.cur&&!l.cur.est&&!l.fromApp&&l.odds&&l.cur.o>l.odds*1.04))tips.push(`💸 ${esc(l.label)} : Betclic paie ${fr(l.cur.o)}, ton ticket seulement ${fr(l.odds)}.`);
+  for(const s of same)if(s.c>1.1)tips.push(`🔗 Deux paris sur ${esc(s.g[0].m.home)} – ${esc(s.g[0].m.away)} vont dans le même sens : ils passent ensemble plus souvent (pris en compte dans la chance).`);
+  else if(s.c<0.9)tips.push(`🔗 Deux paris sur ${esc(s.g[0].m.home)} – ${esc(s.g[0].m.away)} se contredisent un peu : ils passent rarement ensemble.`);
+  const stake=ev!=null&&ev>0?Math.min(0.01,ev/Math.max(O-1,0.01)*0.25)*bank:bank*0.005;
+  return {legs,O,P,ev,v,tips,stake,read};
+}
+
+/* 3) rendu du verdict */
+function iaCard(r){
+  const {legs,O,P,ev,v,tips,stake,read}=r;
+  const lg=l=>{const t=l.ev==null?['n','?']:l.ev>=0.02?['g','+'+pct(l.ev)]:l.ev>=-0.06?['w',pct(l.ev)]:['b',pct(l.ev)];
+    return `<div class="iv-l"><div><b>${l.ev==null?'❔':l.ev>=0.02?'✅':l.ev>=-0.06?'🟠':'❌'} ${esc(l.label)}</b>
+      <small>${l.m?`${esc(l.m.home)} – ${esc(l.m.away)} · ${new Date(l.m.when).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})} ${time(l.m.when)}`:esc(l.teams_seen)}${l.p!=null&&l.known?` · ${pct(l.p)} · cote juste ${fr(l.fair)}`:''}${l.why?` · ${esc(l.why)}`:''}${l.fromApp?' · cote de l\'appli':''}</small></div>
+      <div class="iv-o"><b class="num">${l.odds?fr(l.odds):'–'}</b><span class="uv ${t[0]}">${t[1]}</span></div></div>`};
+  return `<div class="iv ${v[0]}">
+    <div class="iv-h"><b>${v[1]}</b>${legs.length?`<span class="tag ${v[0]==='go'?'g':v[0]==='mid'?'w':'n'}">${legs.length>1?legs.length+' matchs':'simple'}</span>`:''}</div>
+    <p>${v[2]}</p>
+    ${legs.length?`<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kpi"><small>Cote</small><b class="big">${fr(O)}</b></div><div class="kpi"><small>Chance</small><b>${P!=null?pct(P,P<0.1?1:0):'–'}</b></div>
+      <div class="kpi"><small>Value</small><b class="${ev>=0?'g':''}" style="${ev<0?'color:var(--bad)':''}">${ev!=null?(ev>=0?'+':'')+pct(ev):'–'}</b></div><div class="kpi"><small>Mise max</small><b>${fr(stake)} €</b></div></div>`:''}
+    ${legs.map(lg).join('')}
+    ${P!=null?`<p class="note" style="margin:0">Passe environ 1 fois sur ${Math.max(1,Math.round(1/Math.max(P,1e-4)))}.${read.stake?` Pour ${fr(read.stake)} € misés : ${fr(read.stake*O)} € si gagné.`:''} ${ev!=null&&ev<=0?'Si tu le joues quand même, ne mise pas plus que la mise max.':''}</p>`:''}
+    ${tips.length?`<div class="iv-t">${tips.map(t=>`<div>${t}</div>`).join('')}</div>`:''}
+    ${read.notes?`<p class="note" style="margin:0">📝 ${esc(read.notes)}</p>`:''}
+    ${legs.some(l=>l.m&&l.known&&l.odds)?`<button class="cta ghost" data-iaticket>${plus} Mettre dans mon ticket</button>`:''}
+  </div>`;
+}
+// petit markdown sûr : on échappe tout, puis gras et listes
+function md(s){
+  return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split(/\n/).map(l=>/^\s*[-•*]\s+/.test(l)?`<li>${l.replace(/^\s*[-•*]\s+/,'')}</li>`:l?`<p>${l}</p>`:'').join('').replace(/(<li>.*?<\/li>)+/g,m=>`<ul>${m}</ul>`);
+}
+function iaBubble(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;$('ia-thread').appendChild(d);return d}
+
+/* 4) le coach explique, à partir des chiffres du modèle et de ce que l'appli sait des matchs */
+const IA_COACH=`Tu es le coach paris de l'appli Value Foot. Tu parles français, simple et direct, tu tutoies, comme un pote qui s'y connaît en foot et en cotes.
+Tu reçois l'analyse chiffrée d'un combiné faite par le modèle de l'appli (probabilités calculées à partir des stats, des xG et des cotes du marché, mises à jour toutes les 30 minutes) et ce que l'appli sait de chaque match (forme, classement, compos officielles, absences signalées par la presse, mouvement des cotes).
+Ne modifie jamais les chiffres et n'invente pas d'infos (blessés, compos) qui ne sont pas dans les données.
+Réponds en 120 à 200 mots, sans titre : le verdict en une phrase, puis une puce courte par sélection (ce qui tient, ce qui coince), puis ce que tu changerais concrètement. Un combiné n'est jamais sûr : dis-le sans faire la morale.
+Ensuite, réponds aux questions du parieur sur ce combiné à partir des mêmes données, brièvement.`;
+function iaCtx(r){
+  const N=DATA.news||{};
+  return JSON.stringify({maintenant:new Date().toISOString(),cotes_relevees:DATA.updated,
+    combine:{verdict:r.v[1],cote_totale:+r.O.toFixed(2),chance:r.P!=null?+r.P.toFixed(3):null,value:r.ev!=null?+r.ev.toFixed(3):null,mise_max_conseillee:+r.stake.toFixed(2),conseils_de_l_appli:r.tips.map(t=>t.replace(/<[^>]+>/g,''))},
+    selections:r.legs.map(l=>{const m=l.m,base={pari:l.label,lu_sur_le_ticket:l.selection_seen,cote:l.odds,verifie_par_le_modele:l.known,remarque:l.why||null};
+      if(!m)return base;
+      const sc=l.known?(scorers(analyse(m))||[]).filter(x=>x.absent||x.bench).map(x=>`${x.n} (${x.g} buts) ${x.absent?'absent':'remplaçant'}`):[];
+      return {...base,match:`${m.home} - ${m.away}`,competition:m.comp,coup_envoi:m.when,deja_commence:!!l.started,
+        proba_modele:l.p!=null?+l.p.toFixed(3):null,cote_juste:l.fair?+l.fair.toFixed(2):null,value:l.ev!=null?+l.ev.toFixed(3):null,
+        cote_actuelle_appli:l.cur?l.cur.o:null,buts_attendus:l.md?[+l.md.lH.toFixed(2),+l.md.lA.toFixed(2)]:null,
+        forme_5_derniers:[m.hf||null,m.af||null],classement:[m.hr||null,m.ar||null],cotes_1N2_ouverture:m.open||null,cotes_1N2_maintenant:m.odds||m.mkt||null,
+        compo_officielle:!!m.lu,buteurs_absents:sc,alertes_presse:[m.home,m.away].flatMap(t=>N[t]?N[t].alerts.map(a=>`${t} : ${a[0]}`):[]).slice(0,4),coupe_europe:!!m.cross}})});
+}
+async function iaTalk(cl,el){
+  let buf='';
+  const s=cl.beta.messages.stream({model:IA_MODEL,betas:['server-side-fallback-2026-07-01'],fallbacks:'default',max_tokens:16000,
+    output_config:{effort:'low'},system:IA_COACH,messages:iaHist});
+  s.on('text',t=>{buf+=t;el.innerHTML=md(buf)});
+  const fin=await s.finalMessage();
+  if(fin.stop_reason==='refusal'){el.innerHTML='<p class="note">L\'IA n\'a pas pu répondre à ça.</p>';iaHist.pop();return}
+  iaHist.push({role:'assistant',content:fin.content});
+}
+
+async function iaSend(fromTicket){
+  if(iaBusy)return;
+  const text=$('ia-q').value.trim(),imgs=iaImgs.slice();
+  // une capture, un ticket ou des cotes tapées = un nouveau combiné ; sinon c'est une question sur le dernier
+  const isNew=fromTicket||imgs.length||!iaLast||(/\d[.,]\d{1,2}/.test(text)&&!/\?\s*$/.test(text));
+  if(!fromTicket&&!text&&!imgs.length){toast('Ajoute une capture ou écris ton combiné');return}
+  if(!fromTicket&&!IAKEY){toast('Ajoute d\'abord ta clé API Claude');$('ia-key').scrollIntoView({block:'center'});return}
+  iaBusy=true;$('ia-send').disabled=true;
+  $('ia-q').value='';iaImgs=[];iaThumbs();
+  iaBubble('me',fromTicket?'<p>Analyse mon ticket Value Foot</p>':`${imgs.length?`<div class="ia-ims">${imgs.map(x=>`<img src="${x.url}" alt="Capture">`).join('')}</div>`:''}${text?md(text):''}`);
+  const ai=iaBubble('ai','<p class="ia-wait">'+(isNew?(imgs.length?'Je lis ta capture…':'Je lis ton combiné…'):'Je réfléchis…')+'</p>');
+  ai.scrollIntoView({behavior:'smooth',block:'end'});
+  try{
+    if(isNew){
+      let read;
+      if(fromTicket)read={legs:ticket.map(t=>{const l=FLAT.find(x=>x.mid===t.mid&&x.key===t.key);const m=allMatches().find(x=>x.id===t.mid);
+          return {match_id:t.mid,key:t.key,player:null,odds:UO[t.mid+'|'+t.key]||(l&&l.odds)||null,teams_seen:m?m.home+' - '+m.away:'',selection_seen:l?l.label:t.key}}),total_odds:null,stake:num(store.get('vf-stake','5')),notes:''};
+      else{const cl=await claude();read=await iaRead(cl,imgs,text)}
+      if(!fromTicket)read.legs.forEach(x=>{if(x.key==='bt'&&x.player)x.selection_seen=x.selection_seen||x.player+' buteur'});
+      const r=iaEval(read);iaLast=r;
+      ai.innerHTML=iaCard(r);
+      if(!IAKEY||!r.legs.length){iaBusy=false;$('ia-send').disabled=false;iaThumbs();return}
+      const c=iaBubble('ai','<p class="ia-wait">Le coach regarde les matchs…</p>');
+      iaHist=[{role:'user',content:'Voici mon combiné et l\'analyse de l\'appli :\n'+iaCtx(r)+(text?'\n\nMon message : '+text:'')+'\n\nAlors, il est jouable ?'}];
+      await iaTalk(await claude(),c);c.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }else{
+      iaHist.push({role:'user',content:text});
+      await iaTalk(await claude(),ai);
+    }
+  }catch(e){
+    ai.innerHTML=`<p class="lim" style="margin:0">${esc(iaErr(e))}</p>`;
+    if(iaHist.length&&iaHist[iaHist.length-1].role==='user')iaHist.pop();
+  }
+  iaBusy=false;$('ia-send').disabled=false;iaThumbs();
+}
+function renderIA(){
+  const up=DATA.updated?new Date(DATA.updated):null,age=up?(Date.now()-up)/6e4:null;
+  $('ia-fresh').textContent=age==null?'':age<60?`cotes d'il y a ${Math.max(1,Math.round(age))} min`:`cotes d'il y a ${Math.floor(age/60)} h`;
+  $('ia-key').innerHTML=IAKEY?`<details class="add"><summary>🔑 Clé API Claude enregistrée</summary><div class="form"><button class="cta ghost full" id="ia-key-del">Supprimer la clé de cet appareil</button></div></details>`:
+    `<div class="info"><b>Pour lire tes captures, l'IA a besoin d'une clé API Claude.</b> Crée-la sur <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--warn)">console.anthropic.com</a> (compte + quelques euros de crédit ; une analyse coûte environ 5 à 10 centimes), puis colle-la ici. Elle reste sur ton téléphone et ne sert qu'à parler à Claude.
+      <div style="display:flex;gap:8px;margin-top:10px"><input id="ia-key-in" type="password" autocomplete="off" placeholder="sk-ant-…" style="flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke-2);background:var(--glass-2);color:var(--ink);font-family:var(--f-mono)"><button class="addsm" id="ia-key-ok">Enregistrer</button></div>
+      <div style="margin-top:8px">Sans clé, tu peux quand même faire analyser ton ticket Value Foot avec le bouton « Mon ticket ».</div></div>`;
+  $('ia-ticket').hidden=!ticket.length;
+}
+$('ia-send').onclick=()=>iaSend(false);
+$('ia-ticket').onclick=()=>iaSend(true);
+$('ia-file').onchange=e=>{iaAddFiles(e.target.files);e.target.value=''};
+$('ia-q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&matchMedia('(pointer:fine)').matches){e.preventDefault();iaSend(false)}});
+$('ia-box').addEventListener('dragover',e=>{e.preventDefault();$('ia-box').classList.add('drop')});
+$('ia-box').addEventListener('dragleave',()=>$('ia-box').classList.remove('drop'));
+$('ia-box').addEventListener('drop',e=>{e.preventDefault();$('ia-box').classList.remove('drop');iaAddFiles(e.dataTransfer.files)});
+document.addEventListener('paste',e=>{if(st.tab!=='ia')return;const f=[...(e.clipboardData&&e.clipboardData.files||[])];if(f.length){e.preventDefault();iaAddFiles(f)}});
+$('ia-key').addEventListener('click',e=>{
+  if(e.target.id==='ia-key-ok'){const k=$('ia-key-in').value.trim();if(!/^sk-ant-/.test(k)){toast('La clé commence par sk-ant-');return}IAKEY=k;store.set('vf-ia-key',k);renderIA();toast('Clé enregistrée')}
+  if(e.target.id==='ia-key-del'){IAKEY='';store.set('vf-ia-key','');renderIA();toast('Clé supprimée')}
+});
+$('ia-thread').addEventListener('click',e=>{
+  const rm=e.target.closest('[data-iarm]');if(rm){iaImgs.splice(+rm.dataset.iarm,1);iaThumbs();return}
+  if(e.target.closest('[data-iaticket]')&&iaLast){
+    const ok=iaLast.legs.filter(l=>l.m&&l.known&&l.odds),seen=new Set();let skip=0;
+    ticket=[];for(const l of ok){if(seen.has(l.m.id)){skip++;continue}seen.add(l.m.id);if(!l.fromApp){UO[l.m.id+'|'+l.key]=l.odds}ticket.push({mid:l.m.id,key:l.key})}
+    store.set('vf-uo',UO);renderAll();toast(skip?'Ticket rempli (une sélection par match)':'Combiné mis dans ton ticket');
+  }
+});
+$('ia-thumbs').addEventListener('click',e=>{const rm=e.target.closest('[data-iarm]');if(rm){iaImgs.splice(+rm.dataset.iarm,1);iaThumbs()}});
 
 /* ---- interactions ---- */
 function toggleLeg(mid,key){
