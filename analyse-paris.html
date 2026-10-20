@@ -406,6 +406,7 @@ details.add summary{padding:15px;font-weight:700;cursor:pointer}
 .ia-acts .addsm{padding:10px 12px}
 .ia-send{width:auto;flex:1;padding:11px}.ia-send:disabled{opacity:.5}
 .ia-thumbs{display:flex;gap:8px;flex-wrap:wrap}.ia-thumbs:empty{display:none}
+.ia-raw summary{font-size:12px;color:var(--muted);cursor:pointer;margin-top:8px}.ia-raw pre{white-space:pre-wrap;font-size:11px;color:var(--muted);max-height:180px;overflow:auto;margin:6px 0 0}
 .ia-th{position:relative}.ia-th img{height:72px;border-radius:10px;border:1px solid var(--stroke-2);display:block}
 .ia-th button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:14px;line-height:1}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -434,7 +435,7 @@ details.add summary{padding:15px;font-weight:700;cursor:pointer}
     </section>
     <section class="view" id="v-ia" hidden>
       <div class="sec-h"><h2>Coach IA</h2><span id="ia-fresh"></span></div>
-      <p class="note" style="margin:-6px 0 0">Envoie une capture de ton combiné (Betclic, Winamax, Unibet…) ou écris-le. L'IA le lit, le compare aux cotes et aux stats de chaque match, et te dit s'il est jouable. Tu peux ensuite lui poser tes questions.</p>
+      <p class="note" style="margin:-6px 0 0">Envoie une capture de ton combiné (Betclic, Winamax, Unibet…) ou écris-le. L'appli le lit, le compare aux cotes et aux stats de chaque match, et te dit s'il est jouable. Gratuit : la capture est lue directement sur ton téléphone.</p>
       <div id="ia-key"></div>
       <div class="ia-thread" id="ia-thread"></div>
       <div class="ia-box" id="ia-box">
@@ -1171,7 +1172,10 @@ function shrink(file){return new Promise((ok,ko)=>{
   const u=URL.createObjectURL(file),im=new Image();
   im.onload=()=>{const s=Math.min(1,1568/Math.max(im.width,im.height)),c=document.createElement('canvas');
     c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-    const d=c.toDataURL('image/jpeg',.88);URL.revokeObjectURL(u);ok({data:d.split(',')[1],url:d})};
+    const d=c.toDataURL('image/jpeg',.88);let big=d;
+    // version plus grande pour la lecture sur le téléphone
+    const s2=Math.min(1,2600/Math.max(im.width,im.height));if(s2>s){const c2=document.createElement('canvas');c2.width=Math.round(im.width*s2);c2.height=Math.round(im.height*s2);c2.getContext('2d').drawImage(im,0,0,c2.width,c2.height);big=c2.toDataURL('image/jpeg',.92)}
+    URL.revokeObjectURL(u);ok({data:d.split(',')[1],url:d,big})};
   im.onerror=()=>{URL.revokeObjectURL(u);ko(new Error('image illisible'))};im.src=u})}
 async function iaAddFiles(files){
   for(const f of [...files].filter(f=>/^image\//.test(f.type)).slice(0,6-iaImgs.length)){try{iaImgs.push(await shrink(f))}catch(e){toast('Image illisible')}}
@@ -1179,7 +1183,7 @@ async function iaAddFiles(files){
 }
 function iaThumbs(){
   $('ia-thumbs').innerHTML=iaImgs.map((x,i)=>`<span class="ia-th"><img src="${x.url}" alt="Capture ${i+1}"><button data-iarm="${i}" aria-label="Retirer la capture">×</button></span>`).join('');
-  $('ia-send').textContent=iaImgs.length||!iaLast?'Analyser':'Envoyer';
+  $('ia-send').textContent=iaImgs.length||!iaLast||!IAKEY?'Analyser':'Envoyer';
 }
 
 /* 1) lecture du ticket par Claude */
@@ -1344,13 +1348,175 @@ async function iaTalk(cl,el){
   iaHist.push({role:'assistant',content:fin.content});
 }
 
+/* ---- mode gratuit : la capture est lue sur le téléphone (OCR), le ticket est décodé par des règles, sans IA payante ---- */
+const OCR_JS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+let OCRW=null,ocrProg=()=>{};
+const loadJs=u=>new Promise((ok,ko)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>ko(new Error('ocr'));document.head.appendChild(s)});
+async function ocrWorker(){
+  if(!window.Tesseract)await loadJs(OCR_JS);
+  if(!OCRW)OCRW=await Tesseract.createWorker('fra',1,{logger:m=>ocrProg(m)});
+  return OCRW;
+}
+// niveaux de gris, texte foncé sur fond clair (les applis en mode sombre sont inversées), agrandi si petit
+function ocrPrep(url){return new Promise((ok,ko)=>{const im=new Image();im.onload=()=>{
+  const s=im.width<1000?2:1,c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;
+  const x=c.getContext('2d');x.drawImage(im,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height),p=d.data;let sum=0;
+  for(let i=0;i<p.length;i+=4){const g=.299*p[i]+.587*p[i+1]+.114*p[i+2];p[i]=p[i+1]=p[i+2]=g;sum+=g}
+  if(sum/(p.length/4)<128)for(let i=0;i<p.length;i+=4)p[i]=p[i+1]=p[i+2]=255-p[i];
+  x.putImageData(d,0,0);ok(c)};im.onerror=ko;im.src=url})}
+
+// noms utilisés par les bookmakers → noms de l'appli
+const IA_ALIAS={'PSG':['paris sg','paris saint germain','paris st germain','paris saint-germain'],'Marseille':['om','olympique de marseille'],'Lyon':['ol','olympique lyonnais'],
+  'Saint-Étienne':['st etienne','asse'],'Lens':['rc lens'],'Strasbourg':['rc strasbourg','racing strasbourg'],'Manchester City':['man city','man. city','manchester c'],
+  'Manchester United':['man utd','man united','man. united','manchester u','manchester utd'],'Tottenham':['spurs','tottenham hotspur'],'Wolves':['wolverhampton'],'Nottingham Forest':['nottingham','forest'],
+  'West Brom':['west bromwich'],'Sheffield Weds':['sheffield wednesday'],'Sheffield United':['sheffield utd'],'Queens Park Rangers':['qpr'],'Heart of Midlothian':['hearts'],
+  'FC Barcelone':['barcelona','barca','barcelone'],'Atlético Madrid':['atletico','atl madrid','atletico de madrid','atleti'],'Real Madrid':['real madrid'],'FC Séville':['seville','sevilla','fc sevilla'],
+  'Betis Séville':['betis','real betis'],'Valence':['valencia'],'Athletic Bilbao':['bilbao','athletic club'],'Real Sociedad':['sociedad'],'Celta Vigo':['celta'],'Rayo Vallecano':['rayo'],'La Corogne':['la coruna','deportivo la corogne'],
+  'Inter Milan':['inter','internazionale','inter milano'],'Milan AC':['ac milan','milan'],'Juventus Turin':['juventus','juve'],'Naples':['napoli','ssc naples'],'AS Rome':['roma','as roma'],'Lazio Rome':['lazio'],
+  'Bologne':['bologna'],'Parme':['parma'],'Côme':['como'],'Bayern Munich':['bayern','bayern munchen','bayern munich'],'Borussia Dortmund':['dortmund','bvb'],'Bayer Leverkusen':['leverkusen'],
+  "Borussia M'gladbach":['gladbach','monchengladbach','mgladbach'],'Eintracht Francfort':['francfort','frankfurt'],'Mayence':['mainz'],'Cologne':['koln','fc cologne'],'Hambourg':['hamburg','hamburger'],
+  'Augsbourg':['augsburg'],'Werder Brême':['werder','bremen','breme'],'RB Leipzig':['leipzig'],'Union Berlin':['union berlin'],'Sporting CP':['sporting','sporting lisbonne','sporting portugal'],
+  'Club Bruges':['bruges','brugge','club brugge'],'PSV Eindhoven':['psv'],'Olympiacos':['olympiakos','olympiacos le piree'],'AEK Athènes':['aek','aek athenes'],'Red Star':['etoile rouge','crvena zvezda','etoile rouge de belgrade'],
+  'F.C. København':['copenhague','copenhagen','fc copenhague'],'Slavia Prague':['slavia'],'Shakhtar Donetsk':['shakhtar'],'St. Gilloise':['union saint gilloise','union st gilloise','union sg','usg'],
+  'Bodø/Glimt':['bodo glimt','bodo'],'Al Nassr':['al nasr'],'Galatasaray':['galatasaray'],'Fenerbahce':['fenerbahce']};
+const IA_GEN=new Set('fc ac as sc cf afc rc rb ss us cd ud sd ca club the city united utd town real sporting athletic atletico racing olympique stade rovers county inter saint sint dep deportivo borussia eintracht union dynamo dinamo fk if sk bk ff cp rj pr mg sp juniors central'.split(' '));
+const tn=s=>' '+String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ø/g,'o').replace(/æ/g,'ae').replace(/[^a-z0-9]+/g,' ').trim()+' ';
+let TIDX=null;
+function teamIdx(){
+  const teams=[...new Set(allMatches().flatMap(m=>[m.home,m.away]))],cnt={};
+  const toks=t=>tn(t).trim().split(' ').filter(w=>w.length>=4&&!IA_GEN.has(w));
+  teams.forEach(t=>new Set(toks(t)).forEach(w=>cnt[w]=(cnt[w]||0)+1));
+  TIDX=teams.map(t=>({t,p:[[tn(t),3],...(IA_ALIAS[t]||[]).map(a=>[tn(a),2]),...toks(t).filter(w=>cnt[w]===1).map(w=>[' '+w+' ',1])].filter(([s])=>s.trim().length>=2)}));
+  TIDX.k=allMatches().length+DATA.updated;
+}
+// équipes citées dans un texte, avec leur position
+function teamsIn(x){
+  if(!TIDX||TIDX.k!==allMatches().length+DATA.updated)teamIdx();
+  const out=[];for(const e of TIDX){let b=null;for(const [s,sc] of e.p){const i=x.indexOf(s);if(i>=0&&(!b||sc>b.sc))b={t:e.t,sc,i,j:i+s.length}}if(b)out.push(b)}
+  return out;
+}
+function findMatch(x,single){
+  const T=teamsIn(x),by={};T.forEach(e=>by[e.t]=e);let best=null;
+  for(const m of allMatches()){if(Date.parse(m.when)<Date.now()-3*36e5)continue;
+    const a=by[m.home],b=by[m.away];if(!a&&!b)continue;const both=a&&b;
+    if(!both&&(!single||Math.max(a?a.sc:0,b?b.sc:0)<2))continue;
+    const v=(both?10:0)+(a?a.sc:0)+(b?b.sc:0)-Date.parse(m.when)/1e13;  // à égalité : le match le plus proche
+    if(!best||v>best.v)best={m,v,both,a,b}}
+  return best;
+}
+// cotes d'une ligne : les nombres à virgule, sauf les seuils (« plus de 2,5 buts », « +1,5 ») et les dates
+function oddsIn(line){
+  const out=[],re=/(\d{1,3})[.,](\d{1,2})(?!\d)/g;let r;
+  while(r=re.exec(line)){const bf=line.slice(Math.max(0,r.index-12),r.index).toLowerCase(),af=line.slice(re.lastIndex,re.lastIndex+9).toLowerCase();
+    if(/(plus|moins|de|\+|-|−|over|under|handicap)\s*$/.test(bf)||/^\s*(but|corner|carton|goal|\/|h\b)/.test(af))continue;
+    const v=+(r[1]+'.'+r[2]);if(v>=1.01&&v<=500)out.push(v)}
+  return out;
+}
+// type de pari à partir du texte de la sélection
+function iaMarket(sel,mt){
+  const {m}=mt,r=sel.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');let x=tn(sel);
+  // on retire « Équipe A - Équipe B » pour ne garder que le choix du parieur
+  const T=teamsIn(x).filter(e=>e.t===m.home||e.t===m.away);
+  const H=T.find(e=>e.t===m.home),A=T.find(e=>e.t===m.away);
+  if(H&&A&&/\s(-|–|vs|v)\s|-/.test(r)){const i=Math.min(H.i,A.i),j=Math.max(H.j,A.j);x=x.slice(0,i)+' '+x.slice(j)}
+  const T2=teamsIn(x),h=T2.some(e=>e.t===m.home),a=T2.some(e=>e.t===m.away);
+  const side=h&&!a?'h':a&&!h?'a':null,has=re=>re.test(x);
+  const nm=r.match(/(\d{1,2})[.,]5/),n=nm?nm[1]+'5':null,over=/(plus|\+|over|\bo\s?\d)/.test(r),under=/(moins|under|\bu\s?\d)/.test(r);
+  if(has(/ corners? /)&&n)return [over||!under?'co'+n:'cu'+n];
+  if(has(/ cartons? | cards? /)&&n)return [over||!under?'yo'+n:'yu'+n];
+  if(has(/ (deux|2|les 2) equipes? (marquent|marque)|btts|both teams/)){const no=has(/ non | no /);return [/2[.,]5/.test(r)?(no?'bno25':'byo25'):(no?'bn':'by')]}
+  const sc=r.match(/(\d)\s*[-:]\s*(\d)/);if(has(/ score /)&&sc)return ['sc'+sc[1]+'-'+sc[2]];
+  if(has(/ handicap /)||/\((\+|-)\s?1/.test(r)||/(\+|-)\s?1[.,]5/.test(r)){const minus=/(-|−)\s?1/.test(r);
+    if(side==='h')return [minus?'hc1':'ac2'];if(side==='a')return [minus?'ac1':'hc2']}
+  if(has(/ rembours| draw no bet | dnb /))return [side==='a'?'dnb2':'dnb1'];
+  if(has(/ double chance | ou nul | ou match nul | 1n | 1x | n2 | x2 | 12 /)){
+    if(has(/ 1n | 1x /))return ['dc1x'];if(has(/ n2 | x2 /))return ['dcx2'];if(has(/ 12 /)||(h&&a))return ['dc12'];return [side==='a'?'dcx2':'dc1x']}
+  // buteur : le nom d'un joueur de la compo ou des meilleurs buteurs
+  const sco=(scorers(analyse(m))||[]).filter(s=>s.p>0).find(s=>{const w=tn(s.n).trim().split(' ').pop();return w.length>=4&&x.includes(' '+w+' ')});
+  if(sco&&!n)return ['bt',sco.n];
+  if(has(/ mi temps | periode | half /)){if(n)return ['other'];return [has(/ nul | n /)?'ht1':side==='a'?'ht2':side==='h'?'ht0':'other']}
+  if(n&&(over||under||has(/ buts? | goals? | total /))){
+    if(side&&over&&has(/ equipe | buts? (de|pour) | marque /)&&['05','15','25'].includes(n))return [(side==='h'?'th':'ta')+'o'+n];
+    return [(under&&!over?'u':'o')+n]}
+  if(has(/ nul | draw | match nul /))return ['d'];
+  if(side)return [side];
+  const one=x.trim().split(' ');if(one.length<=2&&/^(1|2)$/.test(one[0]))return [one[0]==='1'?'h':'a'];
+  return ['other'];
+}
+const IA_SKIP=/(total|mise|gain|cote boost|bonus|freebet|valider|parier|potentiel|rembourse jusqu|^\s*combin\S*\s*\(?\d*\)?\s*(s[eé]lections?)?\s*$)/i;
+// découpe du ticket : chaque match trouvé = une sélection ; la cote et le choix sont pris autour
+function iaParse(text){
+  const lines=text.replace(/\s\+\s/g,'\n').replace(/;/g,'\n').split(/\n/).map(s=>s.trim()).filter(Boolean);
+  const info=lines.map(l=>({l,x:tn(l),o:oddsIn(l),skip:IA_SKIP.test(l)}));
+  const read={legs:[],total_odds:null,stake:null,notes:''};
+  for(const z of info){if(/mise/i.test(z.l)&&!read.stake){const v=z.l.match(/(\d+(?:[.,]\d{1,2})?)\s*€?/);if(v)read.stake=+v[1].replace(',','.')}
+    if(/cote/i.test(z.l)&&/total|combin/i.test(z.l)&&z.o.length)read.total_odds=z.o[z.o.length-1]}
+  // lignes « A - B » : ancres
+  const anc=[];info.forEach((z,i)=>{if(z.skip)return;const f=findMatch(z.x,false);if(f&&f.both&&!(anc.length&&anc[anc.length-1].i===i-1&&anc[anc.length-1].f.m.id===f.m.id))anc.push({i,f})});
+  const blocks=[];
+  // si chaque ligne avec une cote nomme son match, une ligne = une sélection (texte tapé, ou appli qui écrit l'équipe choisie)
+  const oz=info.filter(z=>z.o.length&&!z.skip),lineMode=oz.length&&oz.every(z=>findMatch(z.x,true));
+  if(anc.length&&!lineMode){
+    // selon l'appli, la cote est avant, après ou en fin de bloc : on garde le découpage qui donne un match et une cote par bloc
+    const isA=i=>anc.find(a=>a.i===i),mk=rg=>rg.map(([f,t])=>{const zs=info.slice(f,t+1),as=zs.map((z,k)=>isA(f+k)).filter(Boolean);return {as,z:zs.filter(z=>!z.skip)}});
+    const cut=[];let st0=0;info.forEach((z,i)=>{if(z.o.length&&!z.skip){cut.push([st0,i]);st0=i+1}});
+    const cands=[mk(cut),mk(anc.map((a,k)=>[a.i,k<anc.length-1?anc[k+1].i-1:info.length-1])),mk(anc.map((a,k)=>[k?anc[k-1].i+1:0,a.i]))];
+    const score=c=>c.filter(b=>b.as.length===1&&b.z.filter(z=>z.o.length).length===1).length;
+    const best=cands.reduce((x,c)=>score(c)>score(x)?c:x);
+    for(const b of best)if(b.as.length)blocks.push({f:b.as[0].f,z:b.z,anchor:b.as[0].i});
+  }else{
+    // texte tapé : une sélection par ligne (les lignes sans cote se rattachent à la suivante)
+    let acc=[];for(const z of info){if(z.skip)continue;acc.push(z);if(z.o.length){const f=findMatch(z.x,true)||findMatch(acc.map(q=>q.x).join(' '),true);blocks.push({f,z:acc});acc=[]}}
+    if(acc.length){const f=findMatch(acc.map(q=>q.x).join(' '),true);if(f)blocks.push({f,z:acc})}
+  }
+  for(const b of blocks){
+    const selZ=b.z.filter(z=>b.anchor==null||z!==info[b.anchor]),sel=(selZ.length?selZ:b.z).map(z=>z.l).join(' ').replace(/(^|\s)\d{1,3}[.,]\d{2}(?=\s|$)/g,' ').trim();
+    const os=[...selZ,...b.z].flatMap(z=>z.o),odds=os.length?os[os.length-1]:null;
+    if(!b.f){read.legs.push({match_id:'',key:'other',player:null,odds,teams_seen:sel.slice(0,60),selection_seen:sel.slice(0,60)});continue}
+    const [key,player]=iaMarket(b.anchor!=null?sel:b.z.map(z=>z.l).join(' '),b.f);
+    read.legs.push({match_id:b.f.m.id,key,player:player||null,odds,teams_seen:b.f.m.home+' - '+b.f.m.away,selection_seen:sel.replace(/\s*\d{1,3}[.,]\d{1,2}\s*$/,'').slice(0,60)||key});
+  }
+  const prod=read.legs.reduce((s,l)=>s*(l.odds||1),1);
+  if(read.total_odds&&(read.total_odds<prod*0.8||read.total_odds>prod*1.6))read.total_odds=null;  // cote totale mal lue
+  if(read.legs.some(l=>!l.odds))read.notes='Une cote n\'a pas été lue : la cote actuelle de l\'appli est utilisée.';
+  return read;
+}
+async function iaLocal(imgs,text,el){
+  let all=text||'';
+  if(imgs.length){
+    ocrProg=m=>{if(m.status==='recognizing text')el.innerHTML=`<p class="ia-wait">Je lis ta capture… ${Math.round(m.progress*100)} %</p>`;else if(/load|initializ/.test(m.status))el.innerHTML='<p class="ia-wait">Préparation de la lecture (la 1re fois prend quelques secondes)…</p>'};
+    const w=await ocrWorker();
+    for(const im of imgs){const {data}=await w.recognize(await ocrPrep(im.big||im.url));all+='\n'+data.text}
+  }
+  const read=iaParse(all);read.raw=all.trim();return read;
+}
+// le coach gratuit : explications écrites à partir des données de l'appli
+function coachLocal(r){
+  const pts=f=>f?[...f].reduce((s,c)=>s+(c==='V'?3:c==='N'?1:0),0):null,N=DATA.news||{},out=[];
+  for(const l of r.legs){
+    if(!l.m||!l.known){out.push(`- **${l.label}** : ${l.m?'pari que l\'appli ne calcule pas':'match que l\'appli ne suit pas'}, je ne peux pas le vérifier.`);continue}
+    const m=l.m,bits=[`${pct(l.p)} de chance, cote ${fr(l.odds)} pour une cote juste de ${fr(l.fair)} : ${l.ev>=0.02?'bien payé':l.ev>=-0.06?'prix correct':'trop peu payé'}.`];
+    const ph=pts(m.hf),pa=pts(m.af);if(ph!=null&&pa!=null)bits.push(`Forme : ${m.home} ${ph} pts sur 15${m.hr?` (${m.hr}e)`:''}, ${m.away} ${pa} pts${m.ar?` (${m.ar}e)`:''}.`);
+    if(l.md)bits.push(`Buts attendus ${fr(l.md.lH,1)} – ${fr(l.md.lA,1)}.`);
+    const ab=(scorers(analyse(m))||[]).filter(x=>x.absent||x.bench);if(ab.length)bits.push(`⚠️ ${ab.map(x=>`${x.n} ${x.absent?'absent':'remplaçant'}`).join(', ')}.`);
+    const al=[m.home,m.away].filter(t=>N[t]&&N[t].alerts.length);if(al.length)bits.push(`⚠️ La presse parle d'absences pour ${al.join(' et ')}.`);
+    if(['h','d','a'].includes(l.key)&&m.open&&(m.odds||m.mkt)){const o=m.open[l.key],c=(m.odds||m.mkt)[l.key];if(o&&c&&Math.abs(c-o)/o>=0.05)bits.push(c<o?`La cote baisse (${fr(o)} → ${fr(c)}) : les parieurs misent dessus.`:`La cote monte (${fr(o)} → ${fr(c)}) : le marché y croit moins.`)}
+    bits.push(m.lu?'Compo officielle sortie.':'Compo pas encore sortie : revérifie 1 h avant.');
+    if(m.cross)bits.push('Coupe d\'Europe : avis moins fiable.');
+    out.push(`- **${l.label}** (${m.home} – ${m.away}) : ${bits.join(' ')}`);
+  }
+  const risky=r.legs.filter(l=>l.p!=null).sort((a,b)=>a.p-b.p)[0];
+  let h=`**${r.v[1].replace(/^\S+\s/,'')}.** ${r.v[2]}\n`+out.join('\n');
+  if(risky&&r.legs.length>1)h+=`\nLe plus risqué : **${risky.label}** (${pct(risky.p)}). Chaque match ajouté multiplie les chances de perdre : aucun combiné n'est sûr.`;
+  return md(h);
+}
+
 async function iaSend(fromTicket){
   if(iaBusy)return;
   const text=$('ia-q').value.trim(),imgs=iaImgs.slice();
   // une capture, un ticket ou des cotes tapées = un nouveau combiné ; sinon c'est une question sur le dernier
-  const isNew=fromTicket||imgs.length||!iaLast||(/\d[.,]\d{1,2}/.test(text)&&!/\?\s*$/.test(text));
+  const isNew=fromTicket||imgs.length||!iaLast||!IAKEY||(/\d[.,]\d{1,2}/.test(text)&&!/\?\s*$/.test(text));
   if(!fromTicket&&!text&&!imgs.length){toast('Ajoute une capture ou écris ton combiné');return}
-  if(!fromTicket&&!IAKEY){toast('Ajoute d\'abord ta clé API Claude');$('ia-key').scrollIntoView({block:'center'});return}
   iaBusy=true;$('ia-send').disabled=true;
   $('ia-q').value='';iaImgs=[];iaThumbs();
   iaBubble('me',fromTicket?'<p>Analyse mon ticket Value Foot</p>':`${imgs.length?`<div class="ia-ims">${imgs.map(x=>`<img src="${x.url}" alt="Capture">`).join('')}</div>`:''}${text?md(text):''}`);
@@ -1361,11 +1527,15 @@ async function iaSend(fromTicket){
       let read;
       if(fromTicket)read={legs:ticket.map(t=>{const l=FLAT.find(x=>x.mid===t.mid&&x.key===t.key);const m=allMatches().find(x=>x.id===t.mid);
           return {match_id:t.mid,key:t.key,player:null,odds:UO[t.mid+'|'+t.key]||(l&&l.odds)||null,teams_seen:m?m.home+' - '+m.away:'',selection_seen:l?l.label:t.key}}),total_odds:null,stake:num(store.get('vf-stake','5')),notes:''};
-      else{const cl=await claude();read=await iaRead(cl,imgs,text)}
+      else if(IAKEY){const cl=await claude();read=await iaRead(cl,imgs,text)}else read=await iaLocal(imgs,text,ai);
       if(!fromTicket)read.legs.forEach(x=>{if(x.key==='bt'&&x.player)x.selection_seen=x.selection_seen||x.player+' buteur'});
       const r=iaEval(read);iaLast=r;
-      ai.innerHTML=iaCard(r);
-      if(!IAKEY||!r.legs.length){iaBusy=false;$('ia-send').disabled=false;iaThumbs();return}
+      const raw=read.raw?`<details class="ia-raw"><summary>Texte lu sur ${imgs.length?'la capture':'ton message'}</summary><pre>${esc(read.raw)}</pre></details>`:'';
+      if(!IAKEY&&!fromTicket&&!r.legs.length){iaLast=null;
+        ai.innerHTML=`<p>Je n'ai trouvé aucun match de l'appli dans ${imgs.length?'ta capture':'ton message'}.</p><p class="note">Envoie une capture nette du coupon (zoome sur les paris), ou écris-le avec les cotes : « PSG 1,45 + Lens-Lille plus de 2,5 buts 1,90 ». En mode gratuit, je ne réponds pas aux questions libres.</p>${raw}`}
+      else ai.innerHTML=iaCard(r)+raw;
+      if(!r.legs.length){iaBusy=false;$('ia-send').disabled=false;iaThumbs();return}
+      if(!IAKEY){iaBubble('ai',coachLocal(r));iaBusy=false;$('ia-send').disabled=false;iaThumbs();return}
       const c=iaBubble('ai','<p class="ia-wait">Le coach regarde les matchs…</p>');
       iaHist=[{role:'user',content:'Voici mon combiné et l\'analyse de l\'appli :\n'+iaCtx(r)+(text?'\n\nMon message : '+text:'')+'\n\nAlors, il est jouable ?'}];
       await iaTalk(await claude(),c);c.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1382,10 +1552,9 @@ async function iaSend(fromTicket){
 function renderIA(){
   const up=DATA.updated?new Date(DATA.updated):null,age=up?(Date.now()-up)/6e4:null;
   $('ia-fresh').textContent=age==null?'':age<60?`cotes d'il y a ${Math.max(1,Math.round(age))} min`:`cotes d'il y a ${Math.floor(age/60)} h`;
-  $('ia-key').innerHTML=IAKEY?`<details class="add"><summary>🔑 Clé API Claude enregistrée</summary><div class="form"><button class="cta ghost full" id="ia-key-del">Supprimer la clé de cet appareil</button></div></details>`:
-    `<div class="info"><b>Pour lire tes captures, l'IA a besoin d'une clé API Claude.</b> Crée-la sur <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--warn)">console.anthropic.com</a> (compte + quelques euros de crédit ; une analyse coûte environ 5 à 10 centimes), puis colle-la ici. Elle reste sur ton téléphone et ne sert qu'à parler à Claude.
-      <div style="display:flex;gap:8px;margin-top:10px"><input id="ia-key-in" type="password" autocomplete="off" placeholder="sk-ant-…" style="flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke-2);background:var(--glass-2);color:var(--ink);font-family:var(--f-mono)"><button class="addsm" id="ia-key-ok">Enregistrer</button></div>
-      <div style="margin-top:8px">Sans clé, tu peux quand même faire analyser ton ticket Value Foot avec le bouton « Mon ticket ».</div></div>`;
+  $('ia-key').innerHTML=IAKEY?`<details class="add"><summary>🔑 Mode Claude activé (lecture la plus fiable, payant)</summary><div class="form"><p class="note full" style="margin:0">Tes captures sont lues par Claude et le coach répond à tes questions. Supprime la clé pour revenir au mode gratuit.</p><button class="cta ghost full" id="ia-key-del">Supprimer la clé (mode gratuit)</button></div></details>`:
+    `<details class="add"><summary>Mode Claude (facultatif, payant)</summary><div class="form"><p class="note full" style="margin:0">L'appli marche gratuitement. Si un jour tu veux une lecture parfaite des captures et pouvoir poser des questions au coach, colle une clé API Claude (console.anthropic.com, environ 5 à 10 centimes par analyse). Elle reste sur ton téléphone.</p>
+      <input class="full" id="ia-key-in" type="password" autocomplete="off" placeholder="sk-ant-…"><button class="cta ghost full" id="ia-key-ok">Enregistrer la clé</button></div></details>`;
   $('ia-ticket').hidden=!ticket.length;
 }
 $('ia-send').onclick=()=>iaSend(false);
